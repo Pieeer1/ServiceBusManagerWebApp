@@ -1,0 +1,70 @@
+﻿@page "/manageConnections"
+@inject IConnectionManager _connectionManager;
+<h1>Manage Connections</h1>
+
+@if (_activeConnections is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @if (_activeConnections.Any())
+    {
+        <h3>Active Connections:</h3>
+        @for (int i = 0; i < _activeConnections.Count; i++)
+        {
+            int lambdaIndex = i; // need this to instantiate the static value for lambda expressions
+            <div>
+                <div>
+                    @(i + 1): @_activeConnections[i].Name
+                    <img @onclick="() => RemoveConnection(_activeConnections[lambdaIndex].Name)" src="svg/trashIcon.svg" />
+                </div>
+            </div>
+        }
+        <hr/>
+    }
+    <h3>Add New Connection</h3>
+    <div>
+        <div>Name</div>
+        <InputText @bind-Value="_name"></InputText>
+        <div>Connection String:</div>
+        <InputText @bind-Value="_inputConnectionString"></InputText>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorText))
+    {
+        <div class="text-danger">@_errorText</div>
+    }
+
+    <button class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_inputConnectionString) || string.IsNullOrEmpty(_name))" @onclick="OnAddConnectionPress">Add Connection</button>
+}
+@code {
+    private List<ServiceBusConnectionViewModel>? _activeConnections;
+    private string? _name;
+    private string? _inputConnectionString;
+    private string? _errorText;
+
+    protected override void OnInitialized()
+    {
+        ReprocessConnections();
+    }
+
+    protected void OnAddConnectionPress()
+    {
+        if (_connectionManager.AddConnection(_name!, _inputConnectionString!, out _errorText))
+        {
+            ReprocessConnections();
+        }
+    }
+
+    private void RemoveConnection(string name)
+    {
+        _connectionManager.RemoveConnection(name);
+        ReprocessConnections();
+    }
+
+    private void ReprocessConnections()
+    {
+        _activeConnections = _connectionManager.GetServiceBusConnections().ToList();
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
 
 namespace ServiceBusManager.Data.Services
@@ -37,6 +38,17 @@ namespace ServiceBusManager.Data.Services
             }
             return true;
         }
-
+        public IEnumerable<ServiceBusConnectionViewModel> GetServiceBusConnections()
+        {
+            foreach (var adminPair in _serviceBusAdministrationDictionary)
+            {
+                yield return new ServiceBusConnectionViewModel(adminPair.Key);
+            }
+        }
+        public void RemoveConnection(string name)
+        {
+            _serviceBusAdministrationDictionary.Remove(name);
+            _serviceBusClientDictionary.Remove(name);
+        }
     }
 }
