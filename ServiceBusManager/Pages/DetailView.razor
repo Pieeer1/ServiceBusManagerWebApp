@@ -1,0 +1,60 @@
+﻿@page "/detailView"
+@using Azure.Messaging.ServiceBus.Administration;
+@inject IConnectionManager _connectionManager;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+
+<h1>Details</h1>
+
+
+@if (_activeServiceBusConnections.Any())
+{
+    <h3>Active Connection:</h3>
+    <FormSelect TItem="ServiceBusConnectionViewModel" Items="_activeServiceBusConnections" Selector="(x => x.Name)" ValueChanged="(s) => SetActiveConnection(s.Name)"></FormSelect>
+    @if (_activeTopics is null)
+    {
+        <div>Loading PlaceHolder...</div>
+    }
+    else
+    {
+        @foreach (TopicProperties topicProperties in _activeTopics)
+        {
+            <div>@topicProperties.Name</div>
+        }
+
+    }
+}
+else
+{
+    <div>No Active Connections Found</div>
+    <NavLink class="nav-link" href="manageConnections">
+        <span class="oi oi-list-rich" aria-hidden="true"></span> Add Connections
+    </NavLink>
+}
+
+
+@code {
+    private List<ServiceBusConnectionViewModel> _activeServiceBusConnections = null!;
+    private List<TopicProperties> _activeTopics = null!;
+    private string? _activeConnectionName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _activeServiceBusConnections = _connectionManager.GetServiceBusConnections().ToList();
+        if (_activeServiceBusConnections.Any())
+        {
+            await SetActiveConnection(_activeServiceBusConnections.First().Name);
+        }
+    }
+
+    private async Task SetActiveConnection(string name)
+    {
+        _serviceBusClientAdminManager.SetActiveConnection(name);
+        _activeConnectionName = name;
+        await GetTopicsFromActiveConnection();
+    }
+    private async Task GetTopicsFromActiveConnection()
+    {
+        _activeTopics = (await _serviceBusClientAdminManager.GetTopics()).ToList();
+    }
+
+}

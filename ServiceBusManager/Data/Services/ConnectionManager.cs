@@ -7,8 +7,7 @@ namespace ServiceBusManager.Data.Services
 {
     public class ConnectionManager : IConnectionManager
     {
-        public Dictionary<string, ServiceBusAdministrationClient> _serviceBusAdministrationDictionary = new Dictionary<string, ServiceBusAdministrationClient>();
-        public Dictionary<string, ServiceBusClient> _serviceBusClientDictionary = new Dictionary<string, ServiceBusClient>();
+        public Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)> _serviceBusClientDictionary = new Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)>();
 
         /// <summary>
         /// Adds a new Administration Client and a Basic Client to the Dictionary with the name.
@@ -19,7 +18,7 @@ namespace ServiceBusManager.Data.Services
         public bool AddConnection(string name, string connectionString, out string? error)
         {
             error = null;
-            if (_serviceBusAdministrationDictionary.Keys.Any(x => x.ToLower() == name.ToLower()) || _serviceBusClientDictionary.Keys.Any(x => x.ToLower() == name.ToLower())) 
+            if (_serviceBusClientDictionary.Keys.Any(x => x.ToLower() == name.ToLower()) || _serviceBusClientDictionary.Keys.Any(x => x.ToLower() == name.ToLower())) 
             {
                 error = "Connection Already Exists";
                 return false;
@@ -29,8 +28,7 @@ namespace ServiceBusManager.Data.Services
                 ServiceBusAdministrationClient adminClient = new ServiceBusAdministrationClient(connectionString);
                 ServiceBusClient basicClient = new ServiceBusClient(connectionString);
 
-                _serviceBusAdministrationDictionary.Add(name, adminClient);
-                _serviceBusClientDictionary.Add(name, basicClient);
+                _serviceBusClientDictionary.Add(name, (basicClient, adminClient));
             }
             catch (Exception ex)
             {
@@ -40,14 +38,14 @@ namespace ServiceBusManager.Data.Services
         }
         public IEnumerable<ServiceBusConnectionViewModel> GetServiceBusConnections()
         {
-            foreach (var adminPair in _serviceBusAdministrationDictionary)
+            foreach (var adminPair in _serviceBusClientDictionary)
             {
                 yield return new ServiceBusConnectionViewModel(adminPair.Key);
             }
         }
+        public (ServiceBusClient client, ServiceBusAdministrationClient admin) GetConnectionByName(string key) => _serviceBusClientDictionary.First(x => x.Key == key).Value;
         public void RemoveConnection(string name)
         {
-            _serviceBusAdministrationDictionary.Remove(name);
             _serviceBusClientDictionary.Remove(name);
         }
     }

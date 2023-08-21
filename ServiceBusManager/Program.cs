@@ -49,13 +49,10 @@ namespace ServiceBusManager
         private static void AddScoped(IServiceCollection services)
         {
             services.AddScoped<IJSLogger, JSLogger>();
-            services.AddScoped<IServiceBusMessageManager, ServiceBusMessageManager>();
-            services.AddScoped<IServiceBusAdministrator, ServiceBusAdministrator>();
+            services.AddScoped<IServiceBusClientAdminManager, ServiceBusClientAdminManager>();
         }
         private static void AddSingleton(IServiceCollection services)
-        { 
-            services.AddSingleton<WeatherForecastService>(); //TODO -REMOVE
-
+        {
             services.AddSingleton<IConnectionManager, ConnectionManager>();
         }
     }
