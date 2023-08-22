@@ -28,7 +28,6 @@
         idDictionary = new Dictionary<Guid, TItem>();
         Items.ToList().ForEach(x => idDictionary.Add(Guid.NewGuid(), x));
     }
-
     private async Task ChangeHandler(ChangeEventArgs args)
     {
         if (idDictionary.TryGetValue(Guid.Parse(args.Value?.ToString() ?? ""), out var selectedItem))
