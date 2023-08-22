@@ -4,7 +4,7 @@
 
 @if (_activeConnections is null)
 {
-    <p><em>Loading...</em></p>
+     <Spinner></Spinner>
 }
 else
 {
@@ -17,7 +17,7 @@ else
             <div>
                 <div>
                     @(i + 1): @_activeConnections[i].Name
-                    <img @onclick="() => RemoveConnection(_activeConnections[lambdaIndex].Name)" src="svg/trashIcon.svg" />
+                    <TrashCan OnClickCallback="() => RemoveConnection(_activeConnections[lambdaIndex].Name)"></TrashCan>
                 </div>
             </div>
         }

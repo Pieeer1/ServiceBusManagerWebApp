@@ -12,7 +12,7 @@
     <FormSelect TItem="ServiceBusConnectionViewModel" Items="_activeServiceBusConnections" Selector="(x => x.Name)" ValueChanged="(s) => SetActiveConnection(s.Name)"></FormSelect>
     @if (_activeTopics is null)
     {
-        <div>Loading PlaceHolder...</div>
+        <div><Spinner></Spinner></div>
     }
     else
     {
