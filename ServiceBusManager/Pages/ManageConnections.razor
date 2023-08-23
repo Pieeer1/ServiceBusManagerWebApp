@@ -1,4 +1,5 @@
 ﻿@page "/manageConnections"
+@inject ILocalStorageManager _localStorageManager;
 @inject IConnectionManager _connectionManager;
 <h1>Manage Connections</h1>
 
@@ -49,17 +50,28 @@ else
         ReprocessConnections();
     }
 
-    protected void OnAddConnectionPress()
+    protected async Task OnAddConnectionPress()
+    {
+        if (AddConnection())
+        {
+            await _localStorageManager.AddConnectionToLocalStorage(_name!, _inputConnectionString!);    
+        }
+    }
+
+    private bool AddConnection()
     {
         if (_connectionManager.AddConnection(_name!, _inputConnectionString!, out _errorText))
         {
             ReprocessConnections();
+            return true;
         }
+        return false;
     }
 
     private void RemoveConnection(string name)
     {
         _connectionManager.RemoveConnection(name);
+        _localStorageManager.RemoveConnectionFromLocalStorage(name);
         ReprocessConnections();
     }
 

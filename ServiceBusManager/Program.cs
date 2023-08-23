@@ -1,7 +1,3 @@
-using Azure.Messaging.ServiceBus.Administration;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using ServiceBusManager.Data;
 using ServiceBusManager.Data.Services;
 using ServiceBusManager.Data.Services.Interfaces;
 
@@ -50,6 +46,7 @@ namespace ServiceBusManager
         {
             services.AddScoped<IJSLogger, JSLogger>();
             services.AddScoped<IServiceBusClientAdminManager, ServiceBusClientAdminManager>();
+            services.AddScoped<ILocalStorageManager, LocalStorageManager>();
         }
         private static void AddSingleton(IServiceCollection services)
         {

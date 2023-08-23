@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject ILocalStorageManager _localStorageManager;
+@inject IConnectionManager _connectionManager;
 
 <PageTitle>ServiceBusManager</PageTitle>
 
@@ -17,3 +19,23 @@
         </article>
     </main>
 </div>
+
+@code{
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            foreach (var connection in await _localStorageManager.GetConnections())
+            {
+                if (_connectionManager.GetServiceBusConnections().Any(x => x.Name == connection.Key)) { break; }
+                _connectionManager.AddConnection(connection.Key, connection.Value, out string? localStorageError);
+                if (localStorageError is not null)
+                {
+                    //TODO - and potentially notify user
+                    await _localStorageManager.RemoveConnectionFromLocalStorage(connection.Key);
+                }
+            }
+        }
+    }
+}

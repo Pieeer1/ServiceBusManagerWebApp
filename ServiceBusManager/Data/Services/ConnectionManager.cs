@@ -33,9 +33,10 @@ namespace ServiceBusManager.Data.Services
             catch (Exception ex)
             {
                 error = ex.Message;
+                return false;
             }
             return true;
-        }
+        }        
         public IEnumerable<ServiceBusConnectionViewModel> GetServiceBusConnections()
         {
             foreach (var adminPair in _serviceBusClientDictionary)
