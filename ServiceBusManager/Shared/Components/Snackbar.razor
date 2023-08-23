@@ -1,0 +1,60 @@
+﻿@using System.Threading.Tasks;
+@using System.Timers;
+@using System.Diagnostics;
+
+@if (Active)
+{
+    <div class="modal modal-sheet position-static d-block bg-body-secondary p-4 py-md-5" tabindex="-1" role="dialog" id="modalSheet">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-bottom-0">
+                    <h1 class="modal-title fs-5">@Message</h1>
+                    <button @onclick="RemoveWindow" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+    [Parameter]
+    public bool Active { get; set; }
+    public int Lifetime { get; set; } = -1;
+    private double _lifeTimeTracker = 0.0d;
+
+    protected override void OnInitialized()
+    {
+        if (Lifetime != -1)
+        {
+            StartTimer();
+        }
+    }
+
+    private void StartTimer()
+    {
+        var timer = new Timer(1000.0d);
+        timer.Elapsed += TimerCounter;
+        timer.Enabled = true;
+        timer.Start();
+    }
+
+    private void TimerCounter(object? sender, ElapsedEventArgs e)
+    {
+        if(sender is null){ return; }
+        _lifeTimeTracker++;
+        if (_lifeTimeTracker >= Lifetime)
+        {
+            RemoveWindow();
+            Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
+            ((Timer)sender)?.Stop();
+        }
+    }
+
+    private void RemoveWindow()
+    {
+         Active = false;
+    }
+}

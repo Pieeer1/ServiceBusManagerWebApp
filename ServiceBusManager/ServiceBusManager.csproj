@@ -7,12 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Shared\Components\Spinner.razor.css" />
     <None Remove="Shared\Svg\Spinner.razor.css" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Shared\Components\Spinner.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
