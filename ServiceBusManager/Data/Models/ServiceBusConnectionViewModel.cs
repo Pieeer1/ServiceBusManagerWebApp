@@ -1,13 +1,21 @@
-﻿namespace ServiceBusManager.Data.Models
+﻿using Azure.Messaging.ServiceBus;
+
+namespace ServiceBusManager.Data.Models
 {
     public class ServiceBusConnectionViewModel
     {
-        public ServiceBusConnectionViewModel(string name)
+        public ServiceBusConnectionViewModel(string name, ServiceBusTransportType transportType, string fullyQualifiedNamespace, string identifier)
         {
             Name = name;
+            TransportType = transportType;
+            FullyQualifiedNamespace = fullyQualifiedNamespace;
+            Identifier = identifier;
         }
 
-        public string Name { get; set; }
+        public string Name { get; private set; }
+        public ServiceBusTransportType TransportType { get; private set; }
+        public string FullyQualifiedNamespace { get; private set; }
 
+        public string Identifier { get; private set; }
     }
 }

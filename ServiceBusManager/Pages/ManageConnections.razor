@@ -2,43 +2,52 @@
 @using System.Drawing;
 @inject ILocalStorageManager _localStorageManager;
 @inject IConnectionManager _connectionManager;
-<h1>Manage Connections</h1>
+<div class="container text-center">
 
-@if (_activeConnections is null)
-{
-     <Spinner></Spinner>
-}
-else
-{
-    @if (_activeConnections.Any())
+    <h1>Manage Connections</h1>
+    @if (_activeConnections is null)
     {
-        <h3>Active Connections:</h3>
-        @for (int i = 0; i < _activeConnections.Count; i++)
+         <Spinner></Spinner>
+    }
+    else
+    {
+        @if (_activeConnections.Any())
         {
-            int lambdaIndex = i; // need this to instantiate the static value for lambda expressions
-            <div>
+            <h3>Active Connections:</h3>
+            @for (int i = 0; i < _activeConnections.Count; i++)
+            {
+                int lambdaIndex = i; // need this to instantiate the static value for lambda expressions
                 <div>
-                    @(i + 1): @_activeConnections[i].Name
-                    <TrashCan OnClickCallback="() => RemoveConnection(_activeConnections[lambdaIndex].Name)"></TrashCan>
+                    <div>
+                        <Card 
+                            CardTitle="@_activeConnections[i].Name" 
+                            CardSubtext="@_activeConnections[i].FullyQualifiedNamespace" 
+                            CardItems="@(new List<string>(){_activeConnections[i].TransportType.ToString(), _activeConnections[i].Identifier})" 
+                            CardLinks="@(new Dictionary<string,string>(){{"Details", "detailView"}})">
+                                <div style="float:right"> @*TODO - DEPRECATE THE SHIT OUT OF THIS INLINE STYLING*@
+                                <TrashCan OnClickCallback="() => RemoveConnection(_activeConnections[lambdaIndex].Name)"></TrashCan>
+                                </div>
+                        </Card>
+                    </div>
                 </div>
-            </div>
+            }
+            <hr/>
         }
-        <hr/>
-    }
-    <h3>Add New Connection</h3>
-    <div>
-        <div>Name</div>
-        <InputText @bind-Value="_name"></InputText>
-        <div>Connection String:</div>
-        <InputText @bind-Value="_inputConnectionString"></InputText>
-    </div>
-    <button class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_inputConnectionString) || string.IsNullOrEmpty(_name))" @onclick="OnAddConnectionPress">Add Connection</button>
+        <h3>Add New Connection</h3>
+        <div>
+            <div>Name</div>
+            <InputText placeholder="Example Server Name" @bind-Value="_name"></InputText>
+            <div>Connection String:</div>
+            <InputText placeholder="Endpoint=..." @bind-Value="_inputConnectionString"></InputText>
+        </div>
+        <button class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_inputConnectionString) || string.IsNullOrEmpty(_name))" @onclick="OnAddConnectionPress">Add Connection</button>
 
-    @if (!string.IsNullOrEmpty(_errorText))
-    {
-        <Snackbar Message="@_errorText" Active="true" Lifetime="5" TextColor="Color.Red"></Snackbar>
+        @if (!string.IsNullOrEmpty(_errorText))
+        {
+            <Snackbar Message="@_errorText" Active="true" Lifetime="5" TextColor="Color.Red"></Snackbar>
+        }
     }
-}
+</div>
 @code {
     private List<ServiceBusConnectionViewModel>? _activeConnections;
     private string? _name;

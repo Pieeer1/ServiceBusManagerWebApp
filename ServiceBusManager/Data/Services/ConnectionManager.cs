@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus.Administration;
 using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
+using System.Collections;
 
 namespace ServiceBusManager.Data.Services
 {
@@ -41,7 +42,7 @@ namespace ServiceBusManager.Data.Services
         {
             foreach (var adminPair in _serviceBusClientDictionary)
             {
-                yield return new ServiceBusConnectionViewModel(adminPair.Key);
+                yield return new ServiceBusConnectionViewModel(adminPair.Key, adminPair.Value.client.TransportType, adminPair.Value.client.FullyQualifiedNamespace, adminPair.Value.client.Identifier);
             }
         }
         public (ServiceBusClient client, ServiceBusAdministrationClient admin) GetConnectionByName(string key) => _serviceBusClientDictionary.First(x => x.Key == key).Value;

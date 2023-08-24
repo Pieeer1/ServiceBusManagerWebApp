@@ -1,0 +1,39 @@
+﻿<div class="col">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@CardTitle</h5>
+            @ChildContent
+            <p class="card-text">@CardSubtext</p>
+        </div>
+        @if (CardItems.Any())
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (string cardItem in CardItems)
+                {
+                    <li class="list-group-item">@cardItem</li>
+                }
+            </ul>
+        }
+        @if (CardLinks.Any())
+        {
+            <div class="card-body">
+                @foreach (KeyValuePair<string, string> linkItem in CardLinks)
+                {
+                    <a href="@linkItem.Value" class="card-link">@linkItem.Key</a>
+                }
+            </div>
+        }
+    </div>
+</div>
+@code {
+    [Parameter]
+    public string? CardTitle { get; set; }    
+    [Parameter]
+    public string? CardSubtext { get; set; }
+    [Parameter]
+    public IEnumerable<string> CardItems { get; set; } = new List<string>();
+    [Parameter]
+    public Dictionary<string, string> CardLinks { get; set; } = new Dictionary<string, string>();
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}
