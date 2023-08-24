@@ -1,4 +1,5 @@
 ﻿@page "/manageConnections"
+@using System.Drawing;
 @inject ILocalStorageManager _localStorageManager;
 @inject IConnectionManager _connectionManager;
 <h1>Manage Connections</h1>
@@ -31,13 +32,12 @@ else
         <div>Connection String:</div>
         <InputText @bind-Value="_inputConnectionString"></InputText>
     </div>
+    <button class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_inputConnectionString) || string.IsNullOrEmpty(_name))" @onclick="OnAddConnectionPress">Add Connection</button>
 
     @if (!string.IsNullOrEmpty(_errorText))
     {
-        <div class="text-danger">@_errorText</div>
+        <Snackbar Message="@_errorText" Active="true" Lifetime="5" TextColor="Color.Red"></Snackbar>
     }
-
-    <button class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_inputConnectionString) || string.IsNullOrEmpty(_name))" @onclick="OnAddConnectionPress">Add Connection</button>
 }
 @code {
     private List<ServiceBusConnectionViewModel>? _activeConnections;
