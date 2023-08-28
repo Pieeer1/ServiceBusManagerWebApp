@@ -14,6 +14,7 @@
                 <div class="accordion-collapse collapse @(ShouldCollapse(item) ? string.Empty :"show")">
                 <div class="accordion-body">
                     @BodyTextSelector?.Invoke(item)
+                    @ChildContent
                 </div>
             </div>
         </div>
@@ -29,6 +30,12 @@
     public Func<T, string>? HeaderTextSelector { get; set; }
     [Parameter]
     public Func<T, string>? BodyTextSelector { get; set; }
+    [Parameter]
+    public Action? OnSelectionCallback { get; set; }    
+    [Parameter]
+    public Func<T,Task>? OnSelectionCallbackAsync { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
 
     protected override void OnInitialized()
     {
@@ -37,7 +44,16 @@
 
     private void AccordionClicked(T t)
     {
-        SelectedItem = SelectedItem == t ? null : t;
+        if (SelectedItem == t)
+        {
+            SelectedItem = null;
+        }
+        else
+        {
+            SelectedItem = t;
+            OnSelectionCallback?.Invoke();
+            OnSelectionCallbackAsync?.Invoke(SelectedItem);
+        }
     }
     private bool ShouldCollapse(T t) => SelectedItem != t;
 }

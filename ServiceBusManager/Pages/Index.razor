@@ -5,5 +5,3 @@
 <h1>Service Bus Manager</h1>
 
 The One Stop Shop for all things Service Bus
-
-<Accordion T="ServiceBusConnectionViewModel" Items="@(new List<ServiceBusConnectionViewModel>(){new ServiceBusConnectionViewModel("test", Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpTcp, "test", "test"), new ServiceBusConnectionViewModel("test2", Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpTcp, "test2\ntest\ntest\n\test", "test2\ntest\ntest\n\test")})" HeaderTextSelector="x => x.Name" BodyTextSelector="x => x.FullyQualifiedNamespace"></Accordion>
