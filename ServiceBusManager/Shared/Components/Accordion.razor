@@ -1,0 +1,59 @@
+﻿@using ServiceBusManager.Data.Extensions;
+@typeparam T where T : class
+
+<div>
+    <div class="accordion">
+    @foreach (T item in Items)
+    {
+        <div class="accordion-item">
+            <h4 class="accordion-header">
+                <button @onclick="() => AccordionClicked(item)" class="accordion-button @(ShouldCollapse(item) ? "collapsed" : string.Empty)" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="@(ShouldCollapse(item) ? "true" : "false")" aria-controls="collapseOne">
+                    @HeaderTextSelector?.Invoke(item)
+                </button>
+            </h4>
+                <div class="accordion-collapse @(ShouldCollapse(item) ? "collapse" : SelectedItemsStatus)" style="@(SelectedItemsStatus == "collapsing" ? "height:128;" : string.Empty)">
+                <div class="accordion-body">
+                    @BodyTextSelector?.Invoke(item)
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+</div>
+@code {
+    [Parameter]
+    public List<T> Items { get; set; } = null!;
+    [Parameter]
+    public T? SelectedItem { get; set; }
+    [Parameter]
+    public Func<T, string>? HeaderTextSelector { get; set; }
+    [Parameter]
+    public Func<T, string>? BodyTextSelector { get; set; }
+
+
+    private string SelectedItemsStatus { get; set; } = "collapse";
+
+    protected override void OnInitialized()
+    {
+        SelectedItem ??= Items.FirstOrDefault();
+        if (SelectedItem is not null)
+        {
+            SelectedItemsStatus = "collapse show";
+        }
+    }
+
+    private void AccordionClicked(T t)
+    {
+        SelectedItem = SelectedItem == t ? null : t;
+        SelectedItemsStatus = "collapsing";
+        BlazorTimer collapseTimer = new BlazorTimer(() =>
+        {
+            SelectedItemsStatus = SelectedItem is not null ? "collapse show" : "collapse";
+            Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
+        }, -1d, 1d);
+        collapseTimer.StartTimer();
+    }
+    private bool ShouldCollapse(T t) => SelectedItem != t;
+
+
+}
