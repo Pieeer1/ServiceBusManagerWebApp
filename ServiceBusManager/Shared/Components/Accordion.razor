@@ -11,7 +11,7 @@
                     @HeaderTextSelector?.Invoke(item)
                 </button>
             </h4>
-                <div class="accordion-collapse @(ShouldCollapse(item) ? "collapse" : SelectedItemsStatus)" style="@(SelectedItemsStatus == "collapsing" ? "height:128;" : string.Empty)">
+                <div class="accordion-collapse @(ShouldCollapse(item) ? "collapse" : SelectedItemsStatus)" style="@(SelectedItemsStatus == "collapsing" ? "height:auto;" : string.Empty)">
                 <div class="accordion-body">
                     @BodyTextSelector?.Invoke(item)
                 </div>
@@ -50,10 +50,8 @@
         {
             SelectedItemsStatus = SelectedItem is not null ? "collapse show" : "collapse";
             Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
-        }, -1d, 1d);
+        }, 1d, 1000d);
         collapseTimer.StartTimer();
     }
     private bool ShouldCollapse(T t) => SelectedItem != t;
-
-
 }
