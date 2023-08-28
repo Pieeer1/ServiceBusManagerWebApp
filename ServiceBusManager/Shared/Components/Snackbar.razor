@@ -1,7 +1,7 @@
 ﻿@using System.Threading.Tasks;
-@using System.Timers;
 @using System.Diagnostics;
 @using System.Drawing;
+@using ServiceBusManager.Data.Extensions;
 
 @if (Active)
 {
@@ -32,41 +32,24 @@
     [Parameter]
     public Color TextColor { get; set; } = Color.Black;
 
-    private Timer? _timer;
+    private BlazorTimer _timer = null!;
+
+    protected override void OnInitialized()
+    {
+        _timer = new BlazorTimer(() =>
+        {
+            RemoveWindow();
+            Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
+        }, Lifetime);
+    }
 
     protected override void OnAfterRender(bool firstRender)
     {
         if (Lifetime != -1)
         {
-            StartTimer();
+            _timer.StartTimer();
         }
     }
-
-    private void StartTimer()
-    {
-        _lifeTimeTracker = 0.0d;
-        if (_timer is null)
-        {
-            _timer = new Timer(1000.0d);
-            _timer.Elapsed += TimerCounter;
-            _timer.Enabled = true;
-            _timer.Start();
-        }
-    }
-
-    private void TimerCounter(object? sender, ElapsedEventArgs e)
-    {
-        if(sender is null){ return; }
-        _lifeTimeTracker++;
-        if (_lifeTimeTracker >= Lifetime)
-        {
-            RemoveWindow();
-            Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
-            _timer?.Stop();
-            _timer = null;
-        }
-    }
-
     private void RemoveWindow()
     {
          Active = false;

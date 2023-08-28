@@ -1,0 +1,59 @@
+﻿@using ServiceBusManager.Data.Extensions;
+@typeparam T where T : class
+
+<div>
+    <div class="accordion">
+    @foreach (T item in Items)
+    {
+        <div class="accordion-item">
+            <h4 class="accordion-header">
+                <button @onclick="() => AccordionClicked(item)" class="accordion-button @(ShouldCollapse(item) ? "collapsed" : string.Empty)" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="@(ShouldCollapse(item) ? "true" : "false")" aria-controls="collapseOne">
+                    @HeaderTextSelector?.Invoke(item)
+                </button>
+            </h4>
+                <div class="accordion-collapse collapse @(ShouldCollapse(item) ? string.Empty :"show")">
+                <div class="accordion-body">
+                    @BodyTextSelector?.Invoke(item)
+                    @ChildContent
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+</div>
+@code {
+    [Parameter]
+    public List<T> Items { get; set; } = null!;
+    [Parameter]
+    public T? SelectedItem { get; set; }
+    [Parameter]
+    public Func<T, string>? HeaderTextSelector { get; set; }
+    [Parameter]
+    public Func<T, string>? BodyTextSelector { get; set; }
+    [Parameter]
+    public Action? OnSelectionCallback { get; set; }    
+    [Parameter]
+    public Func<T,Task>? OnSelectionCallbackAsync { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        SelectedItem ??= Items.FirstOrDefault();
+    }
+
+    private void AccordionClicked(T t)
+    {
+        if (SelectedItem == t)
+        {
+            SelectedItem = null;
+        }
+        else
+        {
+            SelectedItem = t;
+            OnSelectionCallback?.Invoke();
+            OnSelectionCallbackAsync?.Invoke(SelectedItem);
+        }
+    }
+    private bool ShouldCollapse(T t) => SelectedItem != t;
+}

@@ -27,5 +27,14 @@ namespace ServiceBusManager.Data.Services
             }
             return topics;
         }
+        public async Task<IEnumerable<SubscriptionProperties>> GetSubscriptions(string topicName)
+        {
+            List<SubscriptionProperties> subscriptions = new List<SubscriptionProperties>();
+            await foreach (var item in _activeConnection.admin.GetSubscriptionsAsync(topicName).AsPages())
+            {
+                subscriptions.AddRange(item.Values); 
+            }
+            return subscriptions;
+        }
     }
 }

@@ -18,7 +18,21 @@
         else
         {
             <h4>Active Topic</h4>
-            <FormSelect TItem="TopicProperties" Items="_activeTopics" Selector="(x => x.Name)" ValueChanged="() => {}"></FormSelect>
+            <FormSelect TItem="FullTopicData" Items="_activeTopics" Selector="(x => x.TopicProperties.Name)" ValueChanged="() => {}"></FormSelect>
+
+            <Accordion T="FullTopicData" Items="_activeTopics" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic">
+                @if (_activeFullTopic?.SubscriptionProperties is null)
+                {
+                    <Spinner></Spinner>
+                }
+                else
+                {
+                    @foreach (var item in _activeFullTopic.SubscriptionProperties)
+                    {
+                        <div>@item.SubscriptionName</div>
+                    }
+                }
+            </Accordion>
         }
     }
     else
@@ -32,7 +46,8 @@
 
 @code {
     private List<ServiceBusConnectionViewModel> _activeServiceBusConnections = null!;
-    private List<TopicProperties>? _activeTopics;
+    private List<FullTopicData>? _activeTopics;
+    private FullTopicData? _activeFullTopic;
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,9 +63,20 @@
         _activeTopics = null; // no matter what reset value of _activeTopics, triggers the @onChange in the input form
         _serviceBusClientAdminManager.SetActiveConnection(name);
         await GetTopicsFromActiveConnection();
+        if (_activeTopics?.Any() ?? false)
+        {
+            await SelectTopic(_activeTopics.First());
+        }
     }
     private async Task GetTopicsFromActiveConnection()
     {
-        _activeTopics = (await _serviceBusClientAdminManager.GetTopics()).ToList();
+        _activeTopics = (await _serviceBusClientAdminManager.GetTopics()).Select(x => new FullTopicData(x)).ToList();
+    }
+    private async Task SelectTopic(FullTopicData topic)
+    {
+        _activeFullTopic = topic;
+        _activeTopics?.Where(x => x != _activeFullTopic).ToList().ForEach(e => e.SubscriptionProperties = null); // wipe data to make selection more efficient
+        topic.SubscriptionProperties = (await _serviceBusClientAdminManager.GetSubscriptions(topic.TopicProperties.Name));
+        await InvokeAsync(() => StateHasChanged());
     }
 }
