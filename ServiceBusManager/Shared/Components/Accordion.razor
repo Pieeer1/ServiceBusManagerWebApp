@@ -11,7 +11,7 @@
                     @HeaderTextSelector?.Invoke(item)
                 </button>
             </h4>
-                <div class="accordion-collapse @(ShouldCollapse(item) ? "collapse" : SelectedItemsStatus)" style="@(SelectedItemsStatus == "collapsing" ? "height:auto;" : string.Empty)">
+                <div class="accordion-collapse collapse @(ShouldCollapse(item) ? string.Empty :"show")">
                 <div class="accordion-body">
                     @BodyTextSelector?.Invoke(item)
                 </div>
@@ -30,28 +30,14 @@
     [Parameter]
     public Func<T, string>? BodyTextSelector { get; set; }
 
-
-    private string SelectedItemsStatus { get; set; } = "collapse";
-
     protected override void OnInitialized()
     {
         SelectedItem ??= Items.FirstOrDefault();
-        if (SelectedItem is not null)
-        {
-            SelectedItemsStatus = "collapse show";
-        }
     }
 
     private void AccordionClicked(T t)
     {
         SelectedItem = SelectedItem == t ? null : t;
-        SelectedItemsStatus = "collapsing";
-        BlazorTimer collapseTimer = new BlazorTimer(() =>
-        {
-            SelectedItemsStatus = SelectedItem is not null ? "collapse show" : "collapse";
-            Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
-        }, 1d, 1000d);
-        collapseTimer.StartTimer();
     }
     private bool ShouldCollapse(T t) => SelectedItem != t;
 }
