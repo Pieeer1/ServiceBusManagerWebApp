@@ -18,19 +18,17 @@
         else
         {
             <h4>Active Topic</h4>
-            <FormSelect TItem="FullTopicData" Items="_activeTopics" Selector="(x => x.TopicProperties.Name)" ValueChanged="() => {}"></FormSelect>
-
-            <Accordion T="FullTopicData" Items="_activeTopics" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic">
+            <Search T="FullTopicData" OnSearchChanged="SearchChanged" FilterStringToSearch=" x=> x.TopicProperties.Name"></Search>
+            <Accordion T="FullTopicData" Items="_activeTopics.Where(_filterExpression).ToList()" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic">
                 @if (_activeFullTopic?.SubscriptionProperties is null)
                 {
                     <Spinner></Spinner>
                 }
                 else
                 {
-                    @foreach (var item in _activeFullTopic.SubscriptionProperties)
-                    {
-                        <div>@item.SubscriptionName</div>
-                    }
+                    <Accordion T="SubscriptionProperties" Items="_activeFullTopic.SubscriptionProperties.ToList()" HeaderTextSelector="x => x.SubscriptionName" OnSelectionCallbackAsync="SelectSubscription">
+                        <div>@_activeSubscription?.Status</div>
+                    </Accordion>
                 }
             </Accordion>
         }
@@ -46,8 +44,11 @@
 
 @code {
     private List<ServiceBusConnectionViewModel> _activeServiceBusConnections = null!;
+    private Func<FullTopicData, bool> _filterExpression = x => true;
     private List<FullTopicData>? _activeTopics;
     private FullTopicData? _activeFullTopic;
+    private SubscriptionProperties? _activeSubscription;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,5 +79,14 @@
         _activeTopics?.Where(x => x != _activeFullTopic).ToList().ForEach(e => e.SubscriptionProperties = null); // wipe data to make selection more efficient
         topic.SubscriptionProperties = (await _serviceBusClientAdminManager.GetSubscriptions(topic.TopicProperties.Name));
         await InvokeAsync(() => StateHasChanged());
+    }
+    private async Task SelectSubscription(SubscriptionProperties subscription)
+    {
+        _activeSubscription = subscription;
+        await InvokeAsync(() => StateHasChanged());
+    }
+    private void SearchChanged(Func<FullTopicData, bool> args)
+    {
+        _filterExpression = args;    
     }
 }
