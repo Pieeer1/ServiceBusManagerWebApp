@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
 
 namespace ServiceBusManager.Data.Services
@@ -7,7 +8,9 @@ namespace ServiceBusManager.Data.Services
     public class ServiceBusClientAdminManager : IServiceBusClientAdminManager
     {
         private readonly IConnectionManager _connectionManager;
+
         private (ServiceBusClient client, ServiceBusAdministrationClient admin) _activeConnection;
+        private KeyValuePair<string, ServiceBusSender> _topicSender;
         public ServiceBusClientAdminManager(IConnectionManager connectionManager)
         {
             _connectionManager = connectionManager;
@@ -56,6 +59,32 @@ namespace ServiceBusManager.Data.Services
             }
 
             return subscriptionRunDict;
+        }
+        public async Task<bool> SendServiceBusMessage(string topicName, string messageBody, Dictionary<string, string> messageProperties)
+        {
+            try
+            {
+                if (_topicSender.Key != topicName)
+                {
+                    _topicSender = new KeyValuePair<string, ServiceBusSender>(topicName, _activeConnection.client.CreateSender(topicName));
+                }
+                var message = new ServiceBusMessage()
+                {
+                    Body = new BinaryData(messageBody),
+                    MessageId = Guid.NewGuid().ToString(),
+
+                };
+                foreach (var item in messageProperties)
+                {
+                    message.ApplicationProperties.Add(item.Key, item.Value);
+                }
+                await _topicSender.Value.SendMessageAsync(message);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
