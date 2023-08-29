@@ -66,3 +66,9 @@
         overflow-y: auto;
     }
 }
+.environment-label{
+    font-size:small;
+    text-align:center;
+    align-content:center;
+    color:red;
+}

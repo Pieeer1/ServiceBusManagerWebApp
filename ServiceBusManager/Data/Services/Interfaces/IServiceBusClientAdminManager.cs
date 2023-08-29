@@ -4,8 +4,8 @@ namespace ServiceBusManager.Data.Services.Interfaces
 {
     public interface IServiceBusClientAdminManager
     {
-        Task<IEnumerable<SubscriptionProperties>> GetSubscriptions(string topicName);
-        Task<IEnumerable<TopicProperties>> GetTopics();
+        Task<Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties>> GetSubscriptions(string topicName);
+        Task<Dictionary<TopicProperties, TopicRuntimeProperties>> GetTopics();
         void SetActiveConnection(string key);
     }
 }

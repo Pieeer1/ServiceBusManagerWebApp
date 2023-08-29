@@ -15,7 +15,6 @@ namespace ServiceBusManager.Data.Models
         public string Name { get; private set; }
         public ServiceBusTransportType TransportType { get; private set; }
         public string FullyQualifiedNamespace { get; private set; }
-
         public string Identifier { get; private set; }
     }
 }
