@@ -14,7 +14,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="() => Close()">Close</button>
-                <button type="button" class="btn btn-primary" @onclick="() => SecondaryButtonAction.InvokeAsync()">@SecondaryButtonText</button>
+                <button type="button" class="btn btn-primary" @onclick="() => SecondaryButtonAction.InvokeAsync()" disabled="@SecondaryButtonDisabled">@SecondaryButtonText</button>
             </div>
         </div>
     </div>
@@ -36,7 +36,8 @@
     public string SecondaryButtonText { get; set; } = "Save Changes";
     [Parameter]
     public EventCallback SecondaryButtonAction { get; set; }
-
+    [Parameter]
+    public bool SecondaryButtonDisabled { get; set; } = false;
 
     private string _modalDisplay = "none;";
     private string _modalClass = string.Empty;
