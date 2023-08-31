@@ -1,4 +1,6 @@
-﻿@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+﻿@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
 <FormModal @ref="_formModalRef" T="CreateTopicForm" Model="@_createTopicForm" SecondaryButtonText="Add Topic" SecondaryButtonAction="AddTopic" SecondaryButtonDisabled="_spinnerActive">
     <ModalButtonLabel>Add Topic</ModalButtonLabel>
     <Title>Add Topic</Title>
@@ -17,10 +19,13 @@
         }
     </ModalBody>
 </FormModal>
+<Snackbar Message="Error Creating Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
+
 @code {
     private CreateTopicForm _createTopicForm = new CreateTopicForm();
     private FormModal<CreateTopicForm> _formModalRef = null!;
     private bool _spinnerActive = false;
+    private bool _hasError = false;
     private async Task AddTopic()
     {
         _spinnerActive = true;
@@ -28,6 +33,12 @@
         {
             _formModalRef.Close();
             _spinnerActive = false;
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_createTopicForm);
+            _hasError = Validator.TryValidateObject(_createTopicForm, context, null, true);
         }
     }
 }
