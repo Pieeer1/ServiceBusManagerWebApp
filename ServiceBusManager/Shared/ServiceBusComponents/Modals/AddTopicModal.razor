@@ -28,6 +28,8 @@
 </FormModal>
 
 @code {
+    [Parameter]
+    public EventCallback TopicAdded { get; set; }
     private CreateTopicForm _createTopicForm = new CreateTopicForm();
     private FormModal<CreateTopicForm> _formModalRef = null!;
     private bool _spinnerActive = false;
@@ -39,6 +41,10 @@
         {
             _formModalRef.Close();
             _spinnerActive = false;
+            if (TopicAdded.HasDelegate)
+            {
+                await TopicAdded.InvokeAsync();    
+            }
         }
         else
         {

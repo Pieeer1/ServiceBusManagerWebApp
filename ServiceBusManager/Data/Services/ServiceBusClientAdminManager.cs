@@ -112,5 +112,22 @@ namespace ServiceBusManager.Data.Services
             }
             return true;
         }
+        public async Task<bool> RemoveTopic(RemoveTopicForm form)
+        {
+            var context = new ValidationContext(form);
+            if (!Validator.TryValidateObject(form, context, null, true))
+            {
+                return false;
+            }
+            try
+            {
+                await _activeConnection.admin.DeleteTopicAsync(form.TopicName.Item1);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }
