@@ -1,0 +1,61 @@
+﻿@using System.Runtime.InteropServices;
+<div class="flex-row">@Title</div>
+<div class="d-flex flex-column">
+    @for (int i = 0; i < _keys.Count; i++)
+    {
+        int lambdaI = i;
+
+        <div class="d-flex flex-row justify-content-center" style="padding:15px;">
+            <div class="flex-column" style="padding:15px;">
+                <div>Key</div>
+                <InputText class="fill-parent" @bind-Value="_keys[lambdaI].Value" @oninput="RecalculateKeyValues"></InputText> @*TODO -- REFACTOR FROM ONINPUT SINCE IT DOES NOT ALWAYS GRASP LAST UPDATE*@
+            </div>
+            <div class="flex-column" style="padding:15px;">
+                <div>Value</div>
+                <InputText class="fill-parent" @bind-Value="_values[lambdaI].Value" @oninput="RecalculateKeyValues"></InputText>@*TODO -- REFACTOR FROM ONINPUT SINCE IT DOES NOT ALWAYS GRASP LAST UPDATE*@
+            </div>
+        </div>
+
+    }
+</div>
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback<Dictionary<string, string>> OnEndlessDictionaryChange { get; set; }
+    private List<FormResponse> _keys = new List<FormResponse>() { new FormResponse() { Value = string.Empty } };
+    private List<FormResponse> _values = new List<FormResponse>() { new FormResponse() { Value = string.Empty } };
+
+    private IEnumerable<string> _keyValues { get => _keys.Select(x => x.Value); }
+    private IEnumerable<string> _valueValues { get => _values.Select(x => x.Value); }
+
+
+    private void RecalculateKeyValues()
+    {
+        if (_keys.Count > 1 && 
+            (string.IsNullOrEmpty(_keyValues.LastOrDefault()) && string.IsNullOrEmpty(_keyValues.ElementAtOrDefault(_keyValues.Count()-2))) &&
+            (string.IsNullOrEmpty(_valueValues.LastOrDefault()) && string.IsNullOrEmpty(_valueValues.ElementAtOrDefault(_valueValues.Count()-2))))
+        {
+            _keys.RemoveAt(_keys.Count-1);
+            _values.RemoveAt(_keys.Count-1);
+            RecalculateKeyValues();
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(_keyValues.LastOrDefault()) || !string.IsNullOrEmpty(_valueValues.LastOrDefault()))
+        {
+            _keys.Add(new FormResponse() { Value = string.Empty });
+            _values.Add(new FormResponse() { Value = string.Empty });
+        }
+
+        Dictionary<string, string> endlessDictionary = new Dictionary<string, string>();
+
+        for(int i = 0; i < _keys.Count; i++)
+        {
+            endlessDictionary.TryAdd(_keyValues.ElementAt(i), _valueValues.ElementAt(i));
+        }
+
+        OnEndlessDictionaryChange.InvokeAsync(endlessDictionary);
+        
+    }
+}

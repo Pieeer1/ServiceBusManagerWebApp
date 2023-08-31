@@ -72,12 +72,12 @@ namespace ServiceBusManager.Data.Services
                 {
                     Body = new BinaryData(messageBody),
                     MessageId = Guid.NewGuid().ToString(),
-
                 };
                 foreach (var item in messageProperties)
                 {
-                    message.ApplicationProperties.Add(item.Key, item.Value);
+                    message.ApplicationProperties.Add(item.Key, item.Value); //TODO - VALIDATE PROPERTIES ARE SENDING.... LOOKS LIKE THEY MIGHT NOT BE
                 }
+                
                 await _topicSender.Value.SendMessageAsync(message);
             }
             catch
