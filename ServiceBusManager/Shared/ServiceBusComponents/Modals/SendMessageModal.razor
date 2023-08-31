@@ -1,0 +1,41 @@
+﻿@using Azure.Messaging.ServiceBus.Administration;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+
+@*TODO - CHANGE TO VALIDATEABLE FORM*@
+
+<Modal @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="string.IsNullOrWhiteSpace(_sendMessageString)">
+    <ModalButtonLabel>Send Message</ModalButtonLabel>
+    <Title>Send Message - @ActiveSubscription?.SubscriptionName</Title>
+    <ModalBody>
+        <InputTextArea class="fuck-resize fill-parent" rows="25" @bind-Value="_sendMessageString"></InputTextArea>
+        <EndlessDictionary Title="Message Properties" OnEndlessDictionaryChange="(s) => {_messageProperties = s;}" />
+    </ModalBody>
+</Modal>
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public SubscriptionRuntimeProperties ActiveSubscription { get; set; } = null!;
+
+    private string _sendMessageString = string.Empty;
+    private Dictionary<string, string> _messageProperties { get; set; } = new Dictionary<string, string>();
+
+    private Modal _sendMessageModal = null!;
+
+
+    private async Task SendMessage()
+    {
+        _sendMessageModal.ToggleSecondaryButton();
+
+        await runDelayed();
+
+        async Task runDelayed()
+        {
+            if (ActiveFullTopic is not null)
+            {
+                await _serviceBusClientAdminManager.SendServiceBusMessage(ActiveFullTopic.TopicProperties.Name, _sendMessageString, _messageProperties);
+            }
+            _sendMessageModal.ToggleSecondaryButton();
+        }
+    }
+}

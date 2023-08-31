@@ -1,0 +1,33 @@
+﻿@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+<FormModal @ref="_formModalRef" T="CreateTopicForm" Model="@_createTopicForm" SecondaryButtonText="Add Topic" SecondaryButtonAction="AddTopic" SecondaryButtonDisabled="_spinnerActive">
+    <ModalButtonLabel>Add Topic</ModalButtonLabel>
+    <Title>Add Topic</Title>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner></Spinner>
+        }
+        else
+        {
+            <ValidationSummary />
+            <label for="Name">Name</label>
+            <InputText @bind-Value="_createTopicForm.Name" class="form-control" id="Name"></InputText>
+            <label for="TimeToLive">Default Message Time to Live</label>
+            <InputText @bind-Value="_createTopicForm.DefaultTimeToLiveString" class="form-control" id="TimeToLive" placeholder="00:00:00"></InputText>
+        }
+    </ModalBody>
+</FormModal>
+@code {
+    private CreateTopicForm _createTopicForm = new CreateTopicForm();
+    private FormModal<CreateTopicForm> _formModalRef = null!;
+    private bool _spinnerActive = false;
+    private async Task AddTopic()
+    {
+        _spinnerActive = true;
+        if (await _serviceBusClientAdminManager.AddNewTopic(_createTopicForm))
+        {
+            _formModalRef.Close();
+            _spinnerActive = false;
+        }
+    }
+}

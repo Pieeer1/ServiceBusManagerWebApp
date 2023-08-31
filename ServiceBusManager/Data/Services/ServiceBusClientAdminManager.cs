@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus.Administration;
 using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace ServiceBusManager.Data.Services
 {
@@ -15,7 +16,6 @@ namespace ServiceBusManager.Data.Services
         {
             _connectionManager = connectionManager;
         }
-
         public void SetActiveConnection(string key)
         {
             _activeConnection = _connectionManager.GetConnectionByName(key);
@@ -79,6 +79,27 @@ namespace ServiceBusManager.Data.Services
                 }
                 
                 await _topicSender.Value.SendMessageAsync(message);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+        public async Task<bool> AddNewTopic(CreateTopicForm form) 
+        {
+            var context = new ValidationContext(form);
+            if (!Validator.TryValidateObject(form, context, null, true))
+            {
+                return false;
+            }
+            try
+            {
+                await _activeConnection.admin.CreateTopicAsync(new CreateTopicOptions(form.Name)
+                {
+                    DefaultMessageTimeToLive = form.DefaultTimeToLive,
+                    Status = EntityStatus.Active
+                });
             }
             catch
             {

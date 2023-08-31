@@ -17,6 +17,8 @@
         }
         else
         {
+            <AddTopicModal/>
+
             <h4>Active Topic</h4>
             <Search T="FullTopicData" OnSearchChanged="SearchChanged" FilterStringToSearch=" x => x.TopicProperties.Name"></Search>
             <Accordion T="FullTopicData" Items="_activeTopics.Where(_filterExpression).ToList()" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic">
@@ -31,15 +33,7 @@
                         Items="_activeFullTopic.SubscriptionRuntimeProperties.ToList()" 
                         HeaderTextSelector="@(x => $"{x.SubscriptionName} - ({x.ActiveMessageCount}, {x.DeadLetterMessageCount})")" 
                         OnSelectionCallbackAsync="SelectSubscription">
-                        <Modal @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="string.IsNullOrWhiteSpace(_sendMessageString)">
-                            @*TODO --- IMPLEMENT SEND MESSAGE ACTION*@
-                            <ModalButtonLabel>Send Message</ModalButtonLabel>
-                            <Title>Send Message - @_activeSubscription?.SubscriptionName</Title>
-                            <ModalBody>
-                                <InputTextArea class="fuck-resize fill-parent" rows="25" @bind-Value="_sendMessageString"></InputTextArea>
-                                <EndlessDictionary Title="Message Properties" OnEndlessDictionaryChange="(s) => {_messageProperties = s;}" />
-                            </ModalBody>
-                        </Modal>
+                        <SendMessageModal ActiveFullTopic="_activeFullTopic" ActiveSubscription="_activeSubscription"/>
                     </Accordion>
                 }
             </Accordion>
@@ -61,9 +55,6 @@
     private FullTopicData? _activeFullTopic;
     private SubscriptionRuntimeProperties? _activeSubscription;
 
-    private string _sendMessageString = string.Empty;
-    private Dictionary<string, string> _messageProperties { get; set; } = new Dictionary<string, string>();
-    private Modal _sendMessageModal = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,22 +104,5 @@
     private void SearchChanged(Func<FullTopicData, bool> args)
     {
         _filterExpression = args;
-    }
-
-    private async Task SendMessage()
-    {
-        _sendMessageModal.ToggleSecondaryButton();
-
-        await runDelayed();
-
-        async Task runDelayed()
-        {
-            if (_activeFullTopic is not null)
-            {
-                await _serviceBusClientAdminManager.SendServiceBusMessage(_activeFullTopic.TopicProperties.Name, _sendMessageString, _messageProperties);
-            }
-            _sendMessageModal.ToggleSecondaryButton();
-        }
-
     }
 }
