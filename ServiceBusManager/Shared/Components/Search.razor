@@ -1,6 +1,6 @@
 ﻿@typeparam T where T : class
-<div>
-    <input type="text" @bind-Value="activeSearch" @bind-Value:event="oninput" placeholder="Search..."></input>
+<div class="search-wrapper">
+    <input class="search-input" type="text" @bind-Value="activeSearch" @bind-Value:event="oninput" placeholder="Search..."></input>
 </div>
 
 @code {
