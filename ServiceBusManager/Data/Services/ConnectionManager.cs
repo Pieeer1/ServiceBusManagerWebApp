@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus.Administration;
 using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
 using System.Collections;
+using System.ComponentModel.DataAnnotations;
 
 namespace ServiceBusManager.Data.Services
 {
@@ -10,26 +11,25 @@ namespace ServiceBusManager.Data.Services
     {
         public Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)> _serviceBusClientDictionary = new Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)>();
 
-        /// <summary>
-        /// Adds a new Administration Client and a Basic Client to the Dictionary with the name.
-        /// </summary>
-        /// <param name="name">Name of the Connection</param>
-        /// <param name="connectionString">Connection String to Attempt a Connection To</param>
-        /// <returns>True if the connection was added with the correct name successfully. False if the connection was not added</returns>
-        public bool AddConnection(string name, string connectionString, out string? error)
+        public bool AddConnection(AddConnectionForm addConnectionForm ,out string? error)
         {
             error = null;
-            if (_serviceBusClientDictionary.Keys.Any(x => x.ToLower() == name.ToLower()) || _serviceBusClientDictionary.Keys.Any(x => x.ToLower() == name.ToLower())) 
+            var context = new ValidationContext(addConnectionForm);
+            if (!Validator.TryValidateObject(addConnectionForm, context, null, true))
+            {
+                return false;
+            }
+            if (_serviceBusClientDictionary.Keys.Any(x => x.ToLower() == addConnectionForm.Name.ToLower()) || _serviceBusClientDictionary.Keys.Any(x => x.ToLower() == addConnectionForm.Name.ToLower())) 
             {
                 error = "Connection Already Exists";
                 return false;
             }
             try
             {
-                ServiceBusAdministrationClient adminClient = new ServiceBusAdministrationClient(connectionString);
-                ServiceBusClient basicClient = new ServiceBusClient(connectionString);
+                ServiceBusAdministrationClient adminClient = new ServiceBusAdministrationClient(addConnectionForm.ConnectionString);
+                ServiceBusClient basicClient = new ServiceBusClient(addConnectionForm.ConnectionString);
 
-                _serviceBusClientDictionary.Add(name, (basicClient, adminClient));
+                _serviceBusClientDictionary.Add(addConnectionForm.Name, (basicClient, adminClient));
             }
             catch (Exception ex)
             {

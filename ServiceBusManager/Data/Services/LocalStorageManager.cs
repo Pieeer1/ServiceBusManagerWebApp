@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using static ServiceBusManager.Data.Extensions.Constants;
 
@@ -25,12 +27,17 @@ namespace ServiceBusManager.Data.Services
             }
             return connections;
         }
-        public async Task AddConnectionToLocalStorage(string name, string connectionString)
+        public async Task AddConnectionToLocalStorage(AddConnectionForm addConnectionForm)
         {
-            if (!(await GetConnections()).ContainsKey(name))
+            var context = new ValidationContext(addConnectionForm);
+            if (!Validator.TryValidateObject(addConnectionForm, context, null, true))
+            {
+                return;
+            }
+            if (!(await GetConnections()).ContainsKey(addConnectionForm.Name))
             {
                 string? previousConnections = (await _protectedLocalStorage.GetAsync<string>(LocalStorageKeys.SavedConnections)).Value;
-                await _protectedLocalStorage.SetAsync(LocalStorageKeys.SavedConnections, previousConnections == null ? $"{name}={connectionString}" : $"{previousConnections},{name}={connectionString}");
+                await _protectedLocalStorage.SetAsync(LocalStorageKeys.SavedConnections, previousConnections == null ? $"{addConnectionForm.Name}={addConnectionForm.ConnectionString}" : $"{previousConnections},{addConnectionForm.Name}={addConnectionForm.ConnectionString}");
             }
         }
 

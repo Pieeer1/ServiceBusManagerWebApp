@@ -33,48 +33,16 @@
             }
             <hr/>
         }
-        <h3>Add New Connection</h3>
-        <div>
-            <div>Name</div>
-            <InputText placeholder="Example Server Name" @bind-Value="_name"></InputText>
-            <div>Connection String:</div>
-            <InputText placeholder="Endpoint=..." @bind-Value="_inputConnectionString"></InputText>
-        </div>
-        <button class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_inputConnectionString) || string.IsNullOrEmpty(_name))" @onclick="OnAddConnectionPress">Add Connection</button>
-
-        @if (!string.IsNullOrEmpty(_errorText))
-        {
-            <Snackbar Message="@_errorText" Active="true" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
-        }
+        <AddConnectionModal OnAddConnectionCallback="ReprocessConnections"/>
     }
 </div>
 @code {
     private List<ServiceBusConnectionViewModel>? _activeConnections;
-    private string? _name;
-    private string? _inputConnectionString;
-    private string? _errorText;
+
 
     protected override void OnInitialized()
     {
         ReprocessConnections();
-    }
-
-    protected async Task OnAddConnectionPress()
-    {
-        if (AddConnection())
-        {
-            await _localStorageManager.AddConnectionToLocalStorage(_name!, _inputConnectionString!);    
-        }
-    }
-
-    private bool AddConnection()
-    {
-        if (_connectionManager.AddConnection(_name!, _inputConnectionString!, out _errorText))
-        {
-            ReprocessConnections();
-            return true;
-        }
-        return false;
     }
 
     private void RemoveConnection(string name)

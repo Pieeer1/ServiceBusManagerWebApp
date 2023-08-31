@@ -18,7 +18,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="() => Close()">Close</button>
-                <button type="submit" class="btn btn-primary" @onclick="() => SecondaryButtonAction.InvokeAsync()" disabled="@(SecondaryButtonDisabled && _toggleSecondaryButton)">@SecondaryButtonText</button>
+                <button type="submit" class="btn btn-primary" @onclick="() => SecondaryButtonAction.InvokeAsync()" disabled="@(SecondaryButtonDisabled)">@SecondaryButtonText</button>
             </div>
         </div>
         </EditForm>
@@ -49,7 +49,6 @@
     private string _modalDisplay = "none;";
     private string _modalClass = string.Empty;
     private bool _showBackdrop = false;
-    private bool _toggleSecondaryButton = true;
 
     public void Open()
     {
@@ -62,9 +61,5 @@
         _modalDisplay = "none;";
         _modalClass = string.Empty;
         _showBackdrop = false;
-    }
-    public void ToggleSecondaryButton()
-    {
-        _toggleSecondaryButton = !_toggleSecondaryButton;
     }
 }
