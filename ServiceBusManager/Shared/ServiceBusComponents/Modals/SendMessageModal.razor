@@ -1,41 +1,58 @@
 ﻿@using Azure.Messaging.ServiceBus.Administration;
+@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
 @inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
 
-@*TODO - CHANGE TO VALIDATEABLE FORM*@
-
-<Modal @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="string.IsNullOrWhiteSpace(_sendMessageString)">
+<FormModal T="SendMessageForm" Model="_sendMessageForm" @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="_spinnerActive">
     <ModalButtonLabel>Send Message</ModalButtonLabel>
     <Title>Send Message - @ActiveSubscription?.SubscriptionName</Title>
     <ModalBody>
-        <InputTextArea class="fuck-resize fill-parent" rows="25" @bind-Value="_sendMessageString"></InputTextArea>
-        <EndlessDictionary Title="Message Properties" OnEndlessDictionaryChange="(s) => {_messageProperties = s;}" />
+        @if (_spinnerActive)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <ValidationSummary />
+            <InputTextArea class="fuck-resize fill-parent" rows="25" @bind-Value="_sendMessageForm.MessageText"></InputTextArea>
+            <EndlessDictionary Title="Message Properties" OnEndlessDictionaryChange="(s) => {_sendMessageForm.MessageProperties = s;}" />
+            <Snackbar Message="Error Sending Message" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
+        }
     </ModalBody>
-</Modal>
+</FormModal>
 @code {
     [Parameter]
     public FullTopicData ActiveFullTopic { get; set; } = null!;
     [Parameter]
     public SubscriptionRuntimeProperties ActiveSubscription { get; set; } = null!;
 
-    private string _sendMessageString = string.Empty;
-    private Dictionary<string, string> _messageProperties { get; set; } = new Dictionary<string, string>();
+    private SendMessageForm _sendMessageForm { get; set; } = new SendMessageForm();
 
-    private Modal _sendMessageModal = null!;
-
+    private FormModal<SendMessageForm> _sendMessageModal = null!;
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
 
     private async Task SendMessage()
     {
-        _sendMessageModal.ToggleSecondaryButton();
-
         await runDelayed();
 
         async Task runDelayed()
         {
             if (ActiveFullTopic is not null)
             {
-                await _serviceBusClientAdminManager.SendServiceBusMessage(ActiveFullTopic.TopicProperties.Name, _sendMessageString, _messageProperties);
+                _spinnerActive = true;
+                if (await _serviceBusClientAdminManager.SendServiceBusMessage(ActiveFullTopic.TopicProperties.Name, _sendMessageForm))
+                {
+                    _spinnerActive = false;
+                    _sendMessageModal.Close();
+                }
+                else
+                {
+                    _spinnerActive = false;
+                    var context = new ValidationContext(_sendMessageForm);
+                    _hasError = Validator.TryValidateObject(_sendMessageForm, context, null, true);
+                }
             }
-            _sendMessageModal.ToggleSecondaryButton();
         }
     }
 }

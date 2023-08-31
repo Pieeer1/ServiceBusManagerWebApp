@@ -60,8 +60,13 @@ namespace ServiceBusManager.Data.Services
 
             return subscriptionRunDict;
         }
-        public async Task<bool> SendServiceBusMessage(string topicName, string messageBody, Dictionary<string, string> messageProperties)
+        public async Task<bool> SendServiceBusMessage(string topicName, SendMessageForm sendMessageForm)
         {
+            var context = new ValidationContext(sendMessageForm);
+            if (!Validator.TryValidateObject(sendMessageForm, context, null, true))
+            {
+                return false;
+            }
             try
             {
                 if (_topicSender.Key != topicName)
@@ -70,10 +75,10 @@ namespace ServiceBusManager.Data.Services
                 }
                 var message = new ServiceBusMessage()
                 {
-                    Body = new BinaryData(messageBody),
+                    Body = new BinaryData(sendMessageForm.MessageText),
                     MessageId = Guid.NewGuid().ToString(),
                 };
-                foreach (var item in messageProperties)
+                foreach (var item in sendMessageForm.MessageProperties)
                 {
                     message.ApplicationProperties.Add(item.Key, item.Value); //TODO - VALIDATE PROPERTIES ARE SENDING.... LOOKS LIKE THEY MIGHT NOT BE
                 }

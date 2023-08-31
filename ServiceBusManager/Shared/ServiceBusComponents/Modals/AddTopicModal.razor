@@ -12,14 +12,20 @@
         else
         {
             <ValidationSummary />
-            <label for="Name">Name</label>
-            <InputText @bind-Value="_createTopicForm.Name" class="form-control" id="Name"></InputText>
-            <label for="TimeToLive">Default Message Time to Live</label>
-            <InputText @bind-Value="_createTopicForm.DefaultTimeToLiveString" class="form-control" id="TimeToLive" placeholder="00:00:00"></InputText>
+            <div class="d-flex flex-row justify-content-center" style="padding:15px;">
+                <div class="flex-column" style="padding:15px;">
+                    <label for="Name">Name</label>
+                    <InputText @bind-Value="_createTopicForm.Name" class="form-control" id="Name"></InputText>
+                </div>
+                <div class="flex-column" style="padding:15px;">
+                    <label for="TimeToLive">Default Message Time to Live</label>
+                    <InputText @bind-Value="_createTopicForm.DefaultTimeToLiveString" class="form-control" id="TimeToLive" placeholder="00:00:00"></InputText>
+                </div>
+            </div>
         }
+        <Snackbar Message="Error Creating Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
     </ModalBody>
 </FormModal>
-<Snackbar Message="Error Creating Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
 
 @code {
     private CreateTopicForm _createTopicForm = new CreateTopicForm();
