@@ -32,8 +32,8 @@
                 else
                 {
 
-                    <SendMessageModal ActiveFullTopic="_activeFullTopic"/>
-                    <AddSubscriptionModal ActiveFullTopic="_activeFullTopic" OnSubscriptionAdded="GetTopicsFromActiveConnection"></AddSubscriptionModal>
+                    <SendMessageModal ActiveFullTopic="_activeFullTopic" OnModalClosed="RefreshSubscriptions" />
+                    <AddSubscriptionModal ActiveFullTopic="_activeFullTopic" OnSubscriptionAdded="RefreshSubscriptions"></AddSubscriptionModal>
                     <RemoveTopicModal ActiveFullTopic="_activeFullTopic" TopicRemoved="GetTopicsFromActiveConnection" />
 
                     <hr />
@@ -120,5 +120,16 @@
     private void SearchChanged(Func<FullTopicData, bool> args)
     {
         _filterExpression = args;
+    }
+    private async Task RefreshSubscriptions()
+    {
+        if (_activeFullTopic is not null)
+        {
+            Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties> resp = (await _serviceBusClientAdminManager.GetSubscriptions(_activeFullTopic.TopicProperties.Name));
+            _activeFullTopic.SubscriptionProperties = resp.Select(x => x.Key);
+            _activeFullTopic.SubscriptionRuntimeProperties = resp.Select(x => x.Value);
+            await InvokeAsync(() => StateHasChanged());
+           
+        }
     }
 }

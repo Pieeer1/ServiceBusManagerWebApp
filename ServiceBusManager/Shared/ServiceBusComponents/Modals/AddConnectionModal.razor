@@ -47,7 +47,7 @@
         {
             await _localStorageManager.AddConnectionToLocalStorage(_addConnectionForm);
             _spinnerActive = false;
-            _formModalRef.Close();
+            await _formModalRef.Close();
         }
         else
         {

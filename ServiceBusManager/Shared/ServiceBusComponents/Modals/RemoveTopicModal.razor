@@ -39,7 +39,7 @@
         if (await _serviceBusClientAdminManager.RemoveTopic(_removeTopicForm))
         {
             _spinnerActive = false;
-            _formModalRef.Close();
+            await _formModalRef.Close();
             if (TopicRemoved.HasDelegate)
             {
                 await TopicRemoved.InvokeAsync();    

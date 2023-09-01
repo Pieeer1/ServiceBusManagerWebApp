@@ -36,7 +36,6 @@
     public RenderFragment? Title { get; set; }
     [Parameter]
     public RenderFragment? ModalBody { get; set; }
-
     [Parameter]
     public string SecondaryButtonText { get; set; } = "Save Changes";
     [Parameter]
@@ -47,22 +46,33 @@
     public T Model { get; set; } = null!;
     [Parameter]
     public string? ButtonClassOverride { get; set; }
-
+    [Parameter]
+    public EventCallback OnModalOpened { get; set; }
+    [Parameter]
+    public EventCallback OnModalClosed { get; set; }
 
     private string _modalDisplay = "none;";
     private string _modalClass = string.Empty;
     private bool _showBackdrop = false;
 
-    public void Open()
+    public async Task Open()
     {
         _modalDisplay = "block;";
         _modalClass = "show";
         _showBackdrop = true;
+        if (OnModalOpened.HasDelegate)
+        {
+            await OnModalOpened.InvokeAsync();
+        }
     }
-    public void Close()
+    public async Task Close()
     {
         _modalDisplay = "none;";
         _modalClass = string.Empty;
         _showBackdrop = false;
+        if (OnModalClosed.HasDelegate)
+        {
+            await OnModalClosed.InvokeAsync();
+        }
     }
 }

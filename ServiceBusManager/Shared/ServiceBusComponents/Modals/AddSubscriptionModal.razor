@@ -51,7 +51,7 @@
         if (await _serviceBusClientAdminManager.AddNewSubscription(_createSubscriptionForm))
         {
             _spinnerActive = false;
-            _formModalRef.Close();
+            await _formModalRef.Close();
             if (OnSubscriptionAdded.HasDelegate)
             {
                 await OnSubscriptionAdded.InvokeAsync();

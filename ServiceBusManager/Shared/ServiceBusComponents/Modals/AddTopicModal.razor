@@ -39,7 +39,7 @@
         _spinnerActive = true;
         if (await _serviceBusClientAdminManager.AddNewTopic(_createTopicForm))
         {
-            _formModalRef.Close();
+            await _formModalRef.Close();
             _spinnerActive = false;
             if (TopicAdded.HasDelegate)
             {

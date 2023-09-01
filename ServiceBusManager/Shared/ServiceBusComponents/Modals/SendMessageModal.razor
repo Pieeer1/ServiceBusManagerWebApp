@@ -3,7 +3,7 @@
 @using System.ComponentModel.DataAnnotations;
 @inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
 
-<FormModal T="SendMessageForm" Model="_sendMessageForm" @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="_spinnerActive">
+<FormModal T="SendMessageForm" Model="_sendMessageForm" @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="_spinnerActive" OnModalClosed="ModalClosed">
     <ModalButtonLabel>Send Message</ModalButtonLabel>
     <Title>Send Message - @ActiveFullTopic?.TopicProperties.Name</Title>
     <ModalBody>
@@ -23,7 +23,8 @@
 @code {
     [Parameter]
     public FullTopicData ActiveFullTopic { get; set; } = null!;
-
+    [Parameter]
+    public EventCallback OnModalClosed { get; set; }
     private SendMessageForm _sendMessageForm { get; set; } = new SendMessageForm();
 
     private FormModal<SendMessageForm> _sendMessageModal = null!;
@@ -42,7 +43,7 @@
                 if (await _serviceBusClientAdminManager.SendServiceBusMessage(ActiveFullTopic.TopicProperties.Name, _sendMessageForm))
                 {
                     _spinnerActive = false;
-                    _sendMessageModal.Close();
+                    await _sendMessageModal.Close();
                 }
                 else
                 {
@@ -52,5 +53,9 @@
                 }
             }
         }
+    }
+    private async Task ModalClosed()
+    {
+        await OnModalClosed.InvokeAsync();
     }
 }
