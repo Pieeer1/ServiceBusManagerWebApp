@@ -2,7 +2,7 @@
 @using System.Drawing;
 @inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
 
-<FormModal @ref="_formModalRef" T="RemoveTopicForm" Model="_removeTopicForm" SecondaryButtonText="Remove Topic" SecondaryButtonDisabled="_spinnerActive" SecondaryButtonAction="RemoveTopic"> 
+<FormModal @ref="_formModalRef" T="RemoveTopicForm" Model="_removeTopicForm" SecondaryButtonText="Remove Topic" SecondaryButtonDisabled="_spinnerActive" SecondaryButtonAction="RemoveTopic" ButtonClassOverride="@("btn-scary")"> 
     <Title>Remove Topic</Title>
     <ModalButtonLabel>Remove Topic</ModalButtonLabel>
     <ModalBody>
@@ -13,7 +13,7 @@
         else
         {
             <ValidationSummary/>
-            <label class="bg-warning" for="copyCheck">Verify the Name of theTopic you are Removing</label>
+            <label class="bs-warning" for="copyCheck">Verify the Name of theTopic you are Removing</label>
             <InputText @bind-Value="_removeTopicForm.TopicName.Item2" class="form-control" id="copyCheck"></InputText>
             <Snackbar Message="Error Removing Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red" OnDeath="() => {_hasError = false;}"></Snackbar>
         }

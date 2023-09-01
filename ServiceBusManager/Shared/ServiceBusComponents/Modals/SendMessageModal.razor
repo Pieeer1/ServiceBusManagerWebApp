@@ -5,7 +5,7 @@
 
 <FormModal T="SendMessageForm" Model="_sendMessageForm" @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="_spinnerActive">
     <ModalButtonLabel>Send Message</ModalButtonLabel>
-    <Title>Send Message - @ActiveSubscription?.SubscriptionName</Title>
+    <Title>Send Message - @ActiveFullTopic?.TopicProperties.Name</Title>
     <ModalBody>
         @if (_spinnerActive)
         {
@@ -23,8 +23,6 @@
 @code {
     [Parameter]
     public FullTopicData ActiveFullTopic { get; set; } = null!;
-    [Parameter]
-    public SubscriptionRuntimeProperties ActiveSubscription { get; set; } = null!;
 
     private SendMessageForm _sendMessageForm { get; set; } = new SendMessageForm();
 

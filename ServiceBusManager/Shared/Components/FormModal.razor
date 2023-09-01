@@ -1,6 +1,6 @@
 ﻿@typeparam T where T : class
 
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalDefault" @onclick="() => Open()">
+<button type="button" class="btn @(ButtonClassOverride is not null ? ButtonClassOverride : "btn-primary")" data-bs-toggle="modal" data-bs-target="#modalDefault" @onclick="() => Open()">
     @ModalButtonLabel
 </button>
 
@@ -18,7 +18,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="() => Close()">Close</button>
-                <button type="submit" class="btn btn-primary" @onclick="() => SecondaryButtonAction.InvokeAsync()" disabled="@(SecondaryButtonDisabled)">@SecondaryButtonText</button>
+                <button type="submit" class="btn @(ButtonClassOverride is not null ? ButtonClassOverride : "btn-primary")" @onclick="() => SecondaryButtonAction.InvokeAsync()" disabled="@(SecondaryButtonDisabled)">@SecondaryButtonText</button>
             </div>
         </div>
         </EditForm>
@@ -45,6 +45,9 @@
     public bool SecondaryButtonDisabled { get; set; } = false;
     [Parameter]
     public T Model { get; set; } = null!;
+    [Parameter]
+    public string? ButtonClassOverride { get; set; }
+
 
     private string _modalDisplay = "none;";
     private string _modalClass = string.Empty;

@@ -1,0 +1,69 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.Drawing;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+
+<FormModal @ref="_formModalRef" T="CreateSubscriptionForm" Model="_createSubscriptionForm" SecondaryButtonAction="AddSubscription" SecondaryButtonText="Add Subscription" SecondaryButtonDisabled="_spinnerActive">
+    <Title>Add Subscription</Title>
+    <ModalButtonLabel>Add Subscription</ModalButtonLabel>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <ValidationSummary/>
+            <div class="d-flex flex-row justify-content-center" style="padding:15px;">
+                <div class="flex-column" style="padding:15px;">
+                    <label for="Name">Name</label>
+                    <InputText @bind-Value="_createSubscriptionForm.SubscriptionName" class="form-control" id="Name"></InputText>
+                </div>
+                <div class="flex-column" style="padding:15px;">
+                    <label for="TimeToLive">Default Message Time to Live</label>
+                    <InputText @bind-Value="_createSubscriptionForm.DefaultTimeToLiveString" class="form-control" id="TimeToLive" placeholder="00:00:00"></InputText>
+                </div>
+            </div>
+            <Snackbar Message="Error Removing Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red" OnDeath="() => {_hasError = false;}"></Snackbar>
+        }
+    </ModalBody>
+</FormModal>
+
+
+
+
+
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public EventCallback OnSubscriptionAdded { get; set; }
+
+    private CreateSubscriptionForm _createSubscriptionForm = new CreateSubscriptionForm();
+
+    private FormModal<CreateSubscriptionForm> _formModalRef = null!;
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+
+    private async Task AddSubscription()
+    {
+        _spinnerActive = true;
+        _createSubscriptionForm.TopicName = ActiveFullTopic.TopicProperties.Name;
+        if (await _serviceBusClientAdminManager.AddNewSubscription(_createSubscriptionForm))
+        {
+            _spinnerActive = false;
+            _formModalRef.Close();
+            if (OnSubscriptionAdded.HasDelegate)
+            {
+                await OnSubscriptionAdded.InvokeAsync();
+            }
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_createSubscriptionForm);
+            _hasError = Validator.TryValidateObject(_createSubscriptionForm, context, null, true);
+        }
+
+    }
+
+}

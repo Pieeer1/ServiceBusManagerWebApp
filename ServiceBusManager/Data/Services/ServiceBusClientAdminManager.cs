@@ -112,6 +112,28 @@ namespace ServiceBusManager.Data.Services
             }
             return true;
         }
+        public async Task<bool> AddNewSubscription(CreateSubscriptionForm form)
+        {
+            var context = new ValidationContext(form);
+            if (!Validator.TryValidateObject(form, context, null, true))
+            {
+                return false;
+            }
+            try
+            {
+                await _activeConnection.admin.CreateSubscriptionAsync(new CreateSubscriptionOptions(form.TopicName, form.SubscriptionName)
+                {
+                    DefaultMessageTimeToLive = form.DefaultTimeToLive,
+                    Status = EntityStatus.Active
+                });
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+
+        }
         public async Task<bool> RemoveTopic(RemoveTopicForm form)
         {
             var context = new ValidationContext(form);
