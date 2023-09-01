@@ -151,5 +151,22 @@ namespace ServiceBusManager.Data.Services
             }
             return true;
         }
+        public async Task<bool> RemoveSubscription(RemoveSubscriptionForm form)
+        {
+            var context = new ValidationContext(form);
+            if (!Validator.TryValidateObject(form, context, null, true))
+            {
+                return false;
+            }
+            try
+            {
+                await _activeConnection.admin.DeleteSubscriptionAsync(form.TopicName, form.SubscriptionName.Item1);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }
