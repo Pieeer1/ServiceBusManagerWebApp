@@ -1,0 +1,31 @@
+﻿@using Azure.Messaging.ServiceBus;
+@using System.Text;
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Message</th>
+            <th scope="col">Enqueued Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < ServiceBusReceivedMessages.Count; i++)
+        {
+            int lambdaI = i;
+
+            <tr>
+                <th scope="row">@(lambdaI + 1)</th>
+                <td style="word-wrap:anywhere;">@(Encoding.UTF8.GetString(ServiceBusReceivedMessages.ElementAt(i).Body))</td>
+                <td>@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime)</td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+@code {
+    [Parameter]
+    public List<ServiceBusReceivedMessage> ServiceBusReceivedMessages { get; set; } = new List<ServiceBusReceivedMessage>();
+
+
+}

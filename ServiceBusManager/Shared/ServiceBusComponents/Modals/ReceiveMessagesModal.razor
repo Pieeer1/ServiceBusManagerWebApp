@@ -1,0 +1,85 @@
+﻿@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
+@using Azure.Messaging.ServiceBus;
+@using System.Text;
+@inject IServiceBusClientAdminManager _serviceBusAdminClientManager;
+
+<FormModal 
+    @ref="_formModalRef" 
+    T="ReceiveMessageForm" 
+    Model="_receiveMessageForm" 
+    SecondaryButtonText="@(_receivedMessages.Any() ? "Receive New Messages" : _receiveMessageForm.MessageCount > 1 ? "Receive Messages" : "Receive Message")" 
+    SecondaryButtonAction="ReceiveMessagesClicked" 
+    SecondaryButtonDisabled="_spinnerActive" 
+    OnModalClosed="ClearFields">
+    <ModalButtonLabel>Receive Messages</ModalButtonLabel>
+    <Title>Receive Messages - @ActiveFullTopic?.TopicProperties.Name</Title>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner />
+        }
+        else if (_receivedMessages.Any())
+        {
+            <MessageDisplayView ServiceBusReceivedMessages="_receivedMessages"></MessageDisplayView>
+        }
+        else
+        {
+            <ValidationSummary />
+            <label for="messageCount">How Many Messages do you want to read?</label>
+            <InputNumber class="form-control" @bind-Value="_receiveMessageForm.MessageCount" id="messageCount"></InputNumber>
+
+            <Snackbar Message="Error Sending Message" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
+        }
+    </ModalBody>
+</FormModal>
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public string SubscriptionName { get; set; } = null!;
+
+    private ReceiveMessageForm _receiveMessageForm = new ReceiveMessageForm();
+
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+
+    private FormModal<ReceiveMessageForm> _formModalRef = null!;
+
+    private List<ServiceBusReceivedMessage> _receivedMessages = new List<ServiceBusReceivedMessage>();
+
+    public async Task ReceiveMessagesClicked()
+    {
+        if (!_receivedMessages.Any())
+        {
+            await ReceiveMessages();
+        }
+        else
+        {
+            ClearFields();    
+        }
+    }
+
+    public async Task ReceiveMessages()
+    {
+        _spinnerActive = true;
+        _receiveMessageForm.TopicName = ActiveFullTopic.TopicProperties.Name;
+        _receiveMessageForm.SubscriptionName = SubscriptionName;
+        var messagesWithErrors = await _serviceBusAdminClientManager.RetrieveMessages(_receiveMessageForm);
+        if (messagesWithErrors.Item2)
+        {
+            _spinnerActive = false;
+            _receivedMessages = messagesWithErrors.messages?.ToList() ?? new List<ServiceBusReceivedMessage>();
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_receiveMessageForm);
+            _hasError = Validator.TryValidateObject(_receiveMessageForm, context, null, true);
+        }
+    }
+    public void ClearFields()
+    {
+        _receivedMessages = new List<ServiceBusReceivedMessage>();
+    }
+}

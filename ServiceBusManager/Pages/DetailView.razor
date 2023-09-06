@@ -49,6 +49,7 @@
                         Items="_activeFullTopic.SubscriptionRuntimeProperties.ToList()" 
                         HeaderTextSelector="@(x => $"{x.SubscriptionName} - ({x.ActiveMessageCount}, {x.DeadLetterMessageCount})")" 
                         OnSelectionCallbackAsync="SelectSubscription">
+                        <ReceiveMessagesModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName"></ReceiveMessagesModal>
                         <RemoveSubscriptionModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SubscriptionRemoved="RefreshSubscriptions"></RemoveSubscriptionModal>
                     </Accordion>
                 }

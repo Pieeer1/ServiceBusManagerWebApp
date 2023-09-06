@@ -168,5 +168,35 @@ namespace ServiceBusManager.Data.Services
             }
             return true;
         }
+        public async Task<(IEnumerable<ServiceBusReceivedMessage>? messages, bool errors)> RetrieveMessages(ReceiveMessageForm form)
+        {
+            var context = new ValidationContext(form);
+            List<ServiceBusReceivedMessage> receivedMessages = new List<ServiceBusReceivedMessage>();
+
+            if (!Validator.TryValidateObject(form, context, null, true))
+            {
+                return (null, false);
+            }
+            try
+            {
+                await using (var receiver = _activeConnection.client.CreateReceiver(form.TopicName, form.SubscriptionName, new ServiceBusReceiverOptions()
+                {
+                    ReceiveMode = ServiceBusReceiveMode.PeekLock,
+                    PrefetchCount = form.MessageCount
+                }))
+                {
+                    foreach (var message in await receiver.ReceiveMessagesAsync(form.MessageCount, TimeSpan.FromSeconds(5.0f)))
+                    {
+                        receivedMessages.Add(message);
+                        await receiver.AbandonMessageAsync(message); // this just frees the lock on the message, not sure why disposing it does not but oh well
+                    }
+                }
+            }
+            catch
+            {
+                return (null, false);
+            }
+            return (receivedMessages, true);
+        }
     }
 }

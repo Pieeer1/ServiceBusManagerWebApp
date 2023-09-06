@@ -1,4 +1,5 @@
-﻿using Azure.Messaging.ServiceBus.Administration;
+﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using ServiceBusManager.Data.Models;
 
 namespace ServiceBusManager.Data.Services.Interfaces
@@ -11,6 +12,7 @@ namespace ServiceBusManager.Data.Services.Interfaces
         Task<Dictionary<TopicProperties, TopicRuntimeProperties>> GetTopics();
         Task<bool> RemoveSubscription(RemoveSubscriptionForm form);
         Task<bool> RemoveTopic(RemoveTopicForm form);
+        Task<(IEnumerable<ServiceBusReceivedMessage>? messages, bool errors)> RetrieveMessages(ReceiveMessageForm form);
         Task<bool> SendServiceBusMessage(string topicName, SendMessageForm sendMessageForm);
         void SetActiveConnection(string key);
     }
