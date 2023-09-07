@@ -6,6 +6,7 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Message</th>
+            <th scope ="col">Download</th>
             <th scope="col">Enqueued Time</th>
         </tr>
     </thead>
@@ -16,7 +17,10 @@
 
             <tr>
                 <th scope="row">@(lambdaI + 1)</th>
-                <td style="word-wrap:anywhere;">@(Encoding.UTF8.GetString(ServiceBusReceivedMessages.ElementAt(i).Body))</td>
+                <td style="word-wrap:anywhere;">
+                    <InputTextArea @bind-Value="ServiceBusMessageBodies[lambdaI].Value" disabled="@true"  class="fuck-resize form-control"></InputTextArea>
+                </td>
+                <td><DownloadableContent Data="ServiceBusReceivedMessages[lambdaI].Body"></DownloadableContent></td>
                 <td>@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime)</td>
             </tr>
         }
@@ -24,8 +28,11 @@
     </tbody>
 </table>
 @code {
+
     [Parameter]
     public List<ServiceBusReceivedMessage> ServiceBusReceivedMessages { get; set; } = new List<ServiceBusReceivedMessage>();
+
+    private List<FormResponse> ServiceBusMessageBodies { get => ServiceBusReceivedMessages.Select(x => new FormResponse() { Value = Encoding.UTF8.GetString(x.Body) }).ToList(); }
 
 
 }
