@@ -18,7 +18,7 @@
             <tr>
                 <th scope="row">@(lambdaI + 1)</th>
                 <td style="word-wrap:anywhere;">
-                    <InputTextArea @bind-Value="ServiceBusMessageBodies[lambdaI].Value" disabled="@true"  class="fuck-resize form-control"></InputTextArea>
+                    <InputTextArea @bind-Value="ServiceBusMessageBodies[lambdaI].Value" disabled="@true" class="fuck-resize form-control" rows="@(Math.Clamp(ServiceBusMessageBodies[lambdaI].Value.Length/50, 1, 25))"></InputTextArea>
                 </td>
                 <td><DownloadableContent Data="ServiceBusReceivedMessages[lambdaI].Body"></DownloadableContent></td>
                 <td>@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime)</td>

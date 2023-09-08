@@ -1,7 +1,13 @@
 ﻿@using System.Text.Json;
 @inject IJSRuntime _jsRuntime;
-
-<DownloadIcon OnClickCallback="Download"></DownloadIcon>
+@if (!_isSpinning)
+{
+    <DownloadIcon OnClickCallback="Download"></DownloadIcon>
+}
+else
+{
+    <Spinner></Spinner>
+}
 <script> @*HACK - WORKS TO DOWNLOAD FILES UNDER ~250MBS*@
     window.downloadFileFromStream = async (fileName, contentStreamReference) => {
         const arrayBuffer = await contentStreamReference.arrayBuffer();
@@ -19,11 +25,14 @@
     [Parameter]
     public BinaryData Data { get; set; } = null!;
 
+    private bool _isSpinning = false;
+
     public async Task Download() 
     {
-
+        _isSpinning = true;
         using DotNetStreamReference streamRef = new DotNetStreamReference(stream: new MemoryStream(Data.ToArray()));
         await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", $"{DateTime.UtcNow.ToString()}.{GetFileExtension()}", streamRef);
+        _isSpinning = false;
     }
 
     private string GetFileExtension() //TODO - REFACTOR FOR MORE FILETYPES AND TO BE MORE ACCURATE, THIS IS A PLACEHOLDER
