@@ -1,32 +1,33 @@
 ﻿@using Azure.Messaging.ServiceBus;
 @using System.Text;
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Message</th>
-            <th scope ="col">Download</th>
-            <th scope="col">Enqueued Time</th>
-        </tr>
-    </thead>
-    <tbody>
-        @for (int i = 0; i < ServiceBusReceivedMessages.Count; i++)
-        {
-            int lambdaI = i;
-
+<div class="@((((ServiceBusMessageBodies.Where(x => x.Value.Length/50 > 25).Count() >= 2) && ServiceBusMessageBodies.Count() >= 2) || ServiceBusMessageBodies.Count() > 10) ? "scroll-when-needed" : string.Empty)"> @*TODO -- LOOK AT BETTER WAYS TO DYNAMICALLY SET SCROLLBAR*@
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <th scope="row">@(lambdaI + 1)</th>
-                <td style="word-wrap:anywhere;">
-                    <InputTextArea @bind-Value="ServiceBusMessageBodies[lambdaI].Value" disabled="@true" class="fuck-resize form-control" rows="@(Math.Clamp(ServiceBusMessageBodies[lambdaI].Value.Length/50, 1, 25))"></InputTextArea>
-                </td>
-                <td><DownloadableContent Data="ServiceBusReceivedMessages[lambdaI].Body"></DownloadableContent></td>
-                <td>@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime)</td>
+                <th scope="col">#</th>
+                <th scope="col">Message</th>
+                <th scope ="col">Download</th>
+                <th scope="col">Enqueued Time</th>
             </tr>
-        }
+        </thead>
+        <tbody>
+            @for (int i = 0; i < ServiceBusReceivedMessages.Count; i++)
+            {
+                int lambdaI = i;
 
-    </tbody>
-</table>
+                <tr>
+                    <th scope="row">@(lambdaI + 1)</th>
+                    <td style="word-wrap:anywhere;">
+                        <InputTextArea @bind-Value="ServiceBusMessageBodies[lambdaI].Value" disabled="@true" class="fuck-resize form-control" rows="@(Math.Clamp(ServiceBusMessageBodies[lambdaI].Value.Length/50, 1, 25))"></InputTextArea>
+                    </td>
+                    <td><DownloadableContent Data="ServiceBusReceivedMessages[lambdaI].Body"></DownloadableContent></td>
+                    <td>@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime)</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+</div>
 @code {
 
     [Parameter]
