@@ -8,11 +8,11 @@
         <div class="d-flex flex-row justify-content-center" style="padding:15px;">
             <div class="flex-column" style="padding:15px;">
                 <div>Key</div>
-                <InputText class="fill-parent" @bind-Value="_keys[lambdaI].Value" @oninput="RecalculateKeyValues" @onkeyup="RecalculateKeyValues" @onpaste="RecalculateKeyValues"></InputText> @*TODO -- REFACTOR FROM ONINPUT SINCE IT DOES NOT ALWAYS GRASP LAST UPDATE*@
+                <InputText class="fill-parent" Value="@_keys[lambdaI].Value" ValueChanged="(s) => KeyChanged(lambdaI, s)" ValueExpression="() => _keys[lambdaI].Value"></InputText>
             </div>
             <div class="flex-column" style="padding:15px;">
                 <div>Value</div>
-                <InputText class="fill-parent" @bind-Value="_values[lambdaI].Value" @oninput="RecalculateKeyValues" @onkeyup="RecalculateKeyValues" @onpaste="RecalculateKeyValues"></InputText>@*TODO -- REFACTOR FROM ONINPUT SINCE IT DOES NOT ALWAYS GRASP LAST UPDATE*@
+                <InputText class="fill-parent" Value="@_values[lambdaI].Value" ValueChanged="(s) => ValueChanged(lambdaI, s)" ValueExpression="() => _values[lambdaI].Value"></InputText>
             </div>
         </div>
 
@@ -30,6 +30,16 @@
     private IEnumerable<string> _valueValues { get => _values.Select(x => x.Value); }
 
 
+    private void KeyChanged(int i, string value)
+    {
+        _keys[i].Value = value;
+        RecalculateKeyValues();
+    }
+    private void ValueChanged(int i, string value)
+    {
+        _values[i].Value = value;
+        RecalculateKeyValues();
+    }
     private void RecalculateKeyValues()
     {
         if (_keys.Count > 1 && 
