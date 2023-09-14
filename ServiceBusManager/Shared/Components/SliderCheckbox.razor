@@ -1,0 +1,22 @@
+﻿<label for="dlqToggle">@Label</label>
+<div class="form-switch">
+    <input style="height:25px;width:50px;" id="dlqToggle" @onclick="Toggle" class="form-check-input" type="checkbox" value="@BoundValue" />
+</div>
+@code {
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public bool BoundValue { get; set; }
+    [Parameter]
+    public EventCallback<bool> ClickCallback { get; set; }
+
+    private void Toggle()
+    {
+        BoundValue = !BoundValue;
+        if (ClickCallback.HasDelegate)
+        {
+            Task.Run(async () => await ClickCallback.InvokeAsync(BoundValue));
+        }
+    }
+
+}

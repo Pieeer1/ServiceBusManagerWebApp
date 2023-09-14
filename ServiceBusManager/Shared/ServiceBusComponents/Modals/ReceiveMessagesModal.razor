@@ -26,8 +26,17 @@
         else
         {
             <ValidationSummary />
-            <label for="messageCount">How Many Messages do you want to read?</label>
-            <InputNumber class="form-control" @bind-Value="_receiveMessageForm.MessageCount" id="messageCount"></InputNumber>
+
+            <div class="d-flex justify-content-center">
+                <div>
+                    <SliderCheckbox Label="Receive Dead Letter Messages?" BoundValue="_isDLQ" ClickCallback="DLQToggled"></SliderCheckbox>
+                </div>
+                <div>
+                    <label for="messageCount">How Many Messages?</label>
+                    <InputNumber class="form-control" @bind-Value="_receiveMessageForm.MessageCount" id="messageCount"></InputNumber>
+                </div>
+            </div>
+
 
             <Snackbar Message="Error Sending Message" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
         }
@@ -41,6 +50,7 @@
 
     private ReceiveMessageForm _receiveMessageForm = new ReceiveMessageForm();
 
+    private bool _isDLQ = false;
     private bool _spinnerActive = false;
     private bool _hasError = false;
 
@@ -65,6 +75,7 @@
         _spinnerActive = true;
         _receiveMessageForm.TopicName = ActiveFullTopic.TopicProperties.Name;
         _receiveMessageForm.SubscriptionName = SubscriptionName;
+        _receiveMessageForm.IsDLQ = _isDLQ;
         var messagesWithErrors = await _serviceBusAdminClientManager.RetrieveMessages(_receiveMessageForm);
         if (messagesWithErrors.Item2)
         {
@@ -77,7 +88,14 @@
             var context = new ValidationContext(_receiveMessageForm);
             _hasError = Validator.TryValidateObject(_receiveMessageForm, context, null, true);
         }
+        _isDLQ = false;
     }
+
+    private void DLQToggled(bool val)
+    {
+        _isDLQ = val;
+    }
+
     public void ClearFields()
     {
         _receivedMessages = new List<ServiceBusReceivedMessage>();

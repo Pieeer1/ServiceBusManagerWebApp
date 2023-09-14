@@ -17,6 +17,11 @@ namespace ServiceBusManager
             AddScoped(builder.Services);
             AddSingleton(builder.Services);
 
+            builder.Services.AddSignalR(e =>
+            {
+                e.MaximumReceiveMessageSize = 102400000; // TODO - REFACTOR INTO HUB - https://stackoverflow.com/questions/60311852/error-connection-disconnected-with-error-error-server-returned-an-error-on-cl
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

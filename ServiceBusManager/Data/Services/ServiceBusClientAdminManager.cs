@@ -182,13 +182,13 @@ namespace ServiceBusManager.Data.Services
                 await using (var receiver = _activeConnection.client.CreateReceiver(form.TopicName, form.SubscriptionName, new ServiceBusReceiverOptions()
                 {
                     ReceiveMode = ServiceBusReceiveMode.PeekLock,
-                    PrefetchCount = form.MessageCount
+                    PrefetchCount = form.MessageCount,
+                    SubQueue = form.IsDLQ ? SubQueue.DeadLetter : SubQueue.None
                 }))
                 {
-                    foreach (var message in await receiver.ReceiveMessagesAsync(form.MessageCount, TimeSpan.FromSeconds(5.0f)))
+                    foreach (var message in await receiver.PeekMessagesAsync(form.MessageCount))
                     {
                         receivedMessages.Add(message);
-                        await receiver.AbandonMessageAsync(message); // this just frees the lock on the message, not sure why disposing it does not but oh well
                     }
                 }
             }
