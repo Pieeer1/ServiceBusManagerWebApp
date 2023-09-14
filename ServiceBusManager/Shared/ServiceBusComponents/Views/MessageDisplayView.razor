@@ -32,7 +32,7 @@
                                         <InputTextArea @bind-Value="ServiceBusApplicationProperties[lambdaI].Keys.ElementAt(lambdaJ).Value" disabled="@true" class="fuck-resize form-control" id="appPropKey"></InputTextArea>
                                     </div>
                                     <div style="padding-left:3px;">
-                                        <label for="appPropValue">Value</label>
+                                    <label for="appPropValue">Value</label>
                                         <InputTextArea @bind-Value="ServiceBusApplicationProperties[lambdaI].Values.ElementAt(lambdaJ).Value" disabled="@true" class="fuck-resize form-control" id="appPropValue"></InputTextArea>
                                     </div>
                                 </div>
@@ -40,7 +40,9 @@
                     </td>
                     <td class="col-2 align-middle">@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime.ToString("MM/dd/yyyy HH:mm"))</td>
                     <td class="col-1 align-middle"><DownloadableContent Data="ServiceBusReceivedMessages[lambdaI].Body"></DownloadableContent></td>
-                    <td class="col-1 align-middle"><SendMessageIcon></SendMessageIcon></td>
+                    <td class="col-1 align-middle">
+                        <SendMessageIcon OnClickCallback="() => SendIdenticalMessage(lambdaI, ServiceBusMessageBodies[lambdaI].Value, ServiceBusApplicationProperties[lambdaI].ToDictionary(x => x.Key.Value, y => y.Value.Value))"></SendMessageIcon> 
+                    </td>
                 </tr>
             }
         </tbody>
@@ -50,6 +52,8 @@
 
     [Parameter]
     public List<ServiceBusReceivedMessage> ServiceBusReceivedMessages { get; set; } = new List<ServiceBusReceivedMessage>();
+    [Parameter]
+    public EventCallback<(string, Dictionary<string, string>)> SendIdenticalMessageClicked {get;set;}
 
     private List<FormResponse> ServiceBusMessageBodies { get => ServiceBusReceivedMessages.Select(x => new FormResponse() { Value = Encoding.UTF8.GetString(x.Body) }).ToList(); }
 
@@ -61,4 +65,12 @@
     }
 
 
+    public async Task SendIdenticalMessage(int i, string messageText, Dictionary<string,string> applicationProperties)
+    {
+        if (SendIdenticalMessageClicked.HasDelegate)
+        {
+            await SendIdenticalMessageClicked.InvokeAsync((messageText, applicationProperties));
+        }
+    }
+    
 }

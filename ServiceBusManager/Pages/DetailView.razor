@@ -32,7 +32,7 @@
                 else
                 {
 
-                    <SendMessageModal ActiveFullTopic="_activeFullTopic" OnModalClosed="RefreshSubscriptions" />
+                    <SendMessageModal ActiveFullTopic="_activeFullTopic" OnModalClosed="RefreshSubscriptions" OpenOverride="@_sendMessageOpenOverride" />
                     <AddSubscriptionModal ActiveFullTopic="_activeFullTopic" OnSubscriptionAdded="RefreshSubscriptions"></AddSubscriptionModal>
                     <RemoveTopicModal ActiveFullTopic="_activeFullTopic" TopicRemoved="GetTopicsFromActiveConnection" />
 
@@ -49,7 +49,7 @@
                         Items="_activeFullTopic.SubscriptionRuntimeProperties.ToList()" 
                         HeaderTextSelector="@(x => $"{x.SubscriptionName} - ({x.ActiveMessageCount}, {x.DeadLetterMessageCount})")" 
                         OnSelectionCallbackAsync="SelectSubscription">
-                        <ReceiveMessagesModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName"></ReceiveMessagesModal>
+                        <ReceiveMessagesModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SendIdenticalMessageClicked="SendIdenticalMessagePressed"></ReceiveMessagesModal>
                         <RemoveSubscriptionModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SubscriptionRemoved="RefreshSubscriptions"></RemoveSubscriptionModal>
                     </Accordion>
                 }
@@ -72,6 +72,7 @@
     private FullTopicData? _activeFullTopic;
     private SubscriptionRuntimeProperties? _activeSubscription;
 
+    private SendMessageOverrideDTO? _sendMessageOpenOverride;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,7 +132,19 @@
             _activeFullTopic.SubscriptionProperties = resp.Select(x => x.Key);
             _activeFullTopic.SubscriptionRuntimeProperties = resp.Select(x => x.Value);
             await InvokeAsync(() => StateHasChanged());
-           
+
         }
+    }
+
+    private async Task SendIdenticalMessagePressed((ReceiveMessagesModal, SendMessageOverrideDTO) inputTuple)
+    {
+        /*
+         * This entire Function is a hack since the @ref was not updating even with state has changed :/
+         * OnParametersSetAsync in SendMessageModal is the key here, along with passing the reference of the ReceiveMessagesModal
+         */
+        await inputTuple.Item1.Close();
+        _sendMessageOpenOverride = inputTuple.Item2;
+        await Task.Delay(1); // need to delay for 1 ms so the compiler does not optimize to set _sendMessageOpenOverride to null immediately
+        _sendMessageOpenOverride = null;
     }
 }

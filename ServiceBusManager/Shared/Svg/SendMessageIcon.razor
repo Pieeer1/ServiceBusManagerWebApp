@@ -1,4 +1,4 @@
-﻿<svg
+﻿<svg class="@_hoverClass" @onmouseover="MouseOver" @onmouseout="MouseOut" @onclick="OnClickCallback"
     viewBox="0 0 60 60"
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -65,3 +65,19 @@
       sodipodi:stroke-cmyk="(0 0 0 0.8)"
   />
 </svg>
+
+@code{
+    [Parameter]
+    public EventCallback OnClickCallback { get; set; }
+
+    private string _hoverClass = string.Empty;
+
+    private void MouseOver()
+    {
+        _hoverClass = "over";
+    }
+    private void MouseOut()
+    {
+        _hoverClass = string.Empty;
+    }
+}

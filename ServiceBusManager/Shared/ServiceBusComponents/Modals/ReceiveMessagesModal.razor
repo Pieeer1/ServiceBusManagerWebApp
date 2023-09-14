@@ -21,7 +21,7 @@
         }
         else if (_receivedMessages.Any())
         {
-            <MessageDisplayView ServiceBusReceivedMessages="_receivedMessages"></MessageDisplayView>
+            <MessageDisplayView ServiceBusReceivedMessages="_receivedMessages" SendIdenticalMessageClicked="(a) => SendIdenticalMessage(a.Item1, a.Item2)"></MessageDisplayView>
         }
         else
         {
@@ -47,6 +47,8 @@
     public FullTopicData ActiveFullTopic { get; set; } = null!;
     [Parameter]
     public string SubscriptionName { get; set; } = null!;
+    [Parameter]
+    public EventCallback<(ReceiveMessagesModal, SendMessageOverrideDTO)> SendIdenticalMessageClicked { get; set; }
 
     private ReceiveMessageForm _receiveMessageForm = new ReceiveMessageForm();
 
@@ -96,8 +98,21 @@
         _isDLQ = val;
     }
 
+    public async Task Close()
+    {
+        await _formModalRef.Close();    
+    }
+
     public void ClearFields()
     {
         _receivedMessages = new List<ServiceBusReceivedMessage>();
+    }
+
+    public async Task SendIdenticalMessage(string messageText, Dictionary<string, string> applicationProperties)
+    {
+        if (SendIdenticalMessageClicked.HasDelegate)
+        {
+            await SendIdenticalMessageClicked.InvokeAsync((this, new SendMessageOverrideDTO() { Message = messageText, ApplicationProperties = applicationProperties }));
+        }
     }
 }

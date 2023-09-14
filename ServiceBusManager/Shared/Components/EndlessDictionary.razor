@@ -23,11 +23,32 @@
     public string Title { get; set; } = string.Empty;
     [Parameter]
     public EventCallback<Dictionary<string, string>> OnEndlessDictionaryChange { get; set; }
+    [Parameter]
+    public Dictionary<string, string>? DefaultValue { get; set; }
+
     private List<FormResponse> _keys = new List<FormResponse>() { new FormResponse() { Value = string.Empty } };
     private List<FormResponse> _values = new List<FormResponse>() { new FormResponse() { Value = string.Empty } };
 
     private IEnumerable<string> _keyValues { get => _keys.Select(x => x.Value); }
     private IEnumerable<string> _valueValues { get => _values.Select(x => x.Value); }
+
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            RecalculateKeyValues();
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (DefaultValue is not null)
+        {
+            _keys = DefaultValue.Keys.Select(x => new FormResponse() { Value = x }).ToList();
+            _values = DefaultValue.Values.Select(x => new FormResponse() { Value = x }).ToList();
+        }
+    }
 
 
     private void KeyChanged(int i, string value)
