@@ -1,0 +1,18 @@
+﻿<svg class="@_hoverClass" @onmouseover="MouseOver" @onmouseout="MouseOut" @onclick="OnClickCallback" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" width="2em" height="2em" viewBox="0 0 100 100">
+    <path d="M20 20L80 80M80 20L20 80M20 30L20 20 30 20M80 30L80 20 70 20M20 70L20 80 30 80M70 80L80 80 80 70" fill="none" stroke="#000" stroke-width="3" />
+</svg>
+@code {
+    [Parameter]
+    public EventCallback OnClickCallback { get; set; }
+
+    private string _hoverClass = string.Empty;
+
+    private void MouseOver()
+    {
+        _hoverClass = "over";
+    }
+    private void MouseOut()
+    {
+        _hoverClass = string.Empty;
+    }
+}
