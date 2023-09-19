@@ -1,6 +1,6 @@
 ﻿@using System.Runtime.InteropServices;
 <div class="flex-row">@Title</div>
-<div class="d-flex flex-column">
+<div class="d-flex flex-column scroll-when-needed" style="max-height:350px;">
     @for (int i = 0; i < _keys.Count; i++)
     {
         int lambdaI = i;
@@ -13,6 +13,9 @@
             <div class="flex-column" style="padding:15px;">
                 <div>Value</div>
                 <InputText class="fill-parent" Value="@_values[lambdaI].Value" ValueChanged="(s) => ValueChanged(lambdaI, s)" ValueExpression="() => _values[lambdaI].Value"></InputText>
+            </div>
+            <div style="padding: 55px 5px 0px 5px;">
+                <TrashCan OnClickCallback="() => RemoveRow(lambdaI)"/>
             </div>
         </div>
 
@@ -87,6 +90,12 @@
         }
 
         OnEndlessDictionaryChange.InvokeAsync(endlessDictionary);
-        
+
+    }
+    private void RemoveRow(int index)
+    {
+        _keys[index].Value = string.Empty;
+        _values[index].Value = string.Empty;
+        RecalculateKeyValues();
     }
 }
