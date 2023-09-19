@@ -4,7 +4,7 @@ env:
   AZURE_WEBAPP_NAME_QA: ServiceBusManager-QA
   AZURE_WEBAPP_NAME_PROD: ServiceBusManager-Prod
   AZURE_WEBAPP_PACKAGE_PATH: '.'
-  DOTNET_VERSION: '7'
+  DOTNET_VERSION: '7.x'
 
 on:
   push:
