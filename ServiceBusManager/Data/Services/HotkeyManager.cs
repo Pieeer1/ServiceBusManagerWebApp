@@ -12,7 +12,7 @@ namespace ServiceBusManager.Data.Services
 
         private HashSet<Hotkey> _activeHotkeys = new HashSet<Hotkey>();
 
-        public void RegisterHotkey(Action action, CancellationToken? cts = null, params IPressable[] pressables)
+        public void RegisterHotkey(Action action, string actionExplanation, CancellationToken? cts = null, params IPressable[] pressables)
         {
             if (cts is not null)
             {
@@ -22,7 +22,7 @@ namespace ServiceBusManager.Data.Services
             {
                 return;
             }
-            _activeHotkeys.Add(new Hotkey(pressables, action));
+            _activeHotkeys.Add(new Hotkey(pressables, action, actionExplanation));
         }
         public void RegisterHotkey(Hotkey hotkey, CancellationToken? cts = null)
         {
@@ -54,5 +54,6 @@ namespace ServiceBusManager.Data.Services
                 _activeHotkeys.First(x => x.IsHotkeyFromPressables(keys) || x.IsHotkeyFromPressables(codes)).Action.Invoke();
             }
         }
+        public IEnumerable<Hotkey> GetActiveHotkeys() => _activeHotkeys;
     }
 }

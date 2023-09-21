@@ -16,6 +16,7 @@
 
         <article class="content px-4">
             @Body
+            <HotkeyAlert AlertEnabled="_alertEnabled" AlertClosedCallback="() => {_alertEnabled = false;}"></HotkeyAlert>
         </article>
     </main>
 </div>
@@ -23,7 +24,7 @@
 @code{
 
     private ElementReference _baseRef;
-
+    private bool _alertEnabled;
     private HashSet<IPressable> _currentlyPressedKeys = new HashSet<IPressable>();
 
     /// <summary>
@@ -35,12 +36,19 @@
         _currentlyPressedKeys.Add(new Code(e.Code));
 
         _hotkeyManager.TriggerHotkey(_currentlyPressedKeys.ToArray());
+        Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
     }
     private void HandleKeyUp(KeyboardEventArgs e)
     {
         _currentlyPressedKeys.Clear();
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _hotkeyManager.RegisterHotkey(ToggleQuestion, "Show Hotkeys", null, Key.Shift, Key.Question); //TODO - IMPLEMENT HELP SCREEN. POTENTIALLY THROUGH A SERVICE        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -58,5 +66,9 @@
             }
             await _baseRef.FocusAsync();
         }
+    }
+    public void ToggleQuestion()
+    {
+        _alertEnabled = !_alertEnabled;
     }
 }

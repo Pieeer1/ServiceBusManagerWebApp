@@ -39,9 +39,9 @@
     {
         if (firstRender)
         {
-            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo(""), ComponentDetached, Key.Control, Key.Num1);
-            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("manageConnections"), ComponentDetached, Key.Control, Key.Num2);
-            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("detailView"), ComponentDetached, Key.Control, Key.Num3);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo(""), "Naviate to Home", ComponentDetached, Key.Alt, Key.Num1);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("manageConnections"), "Navigate to Manage Connections", ComponentDetached, Key.Alt, Key.Num2);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("detailView"), "Navigate to Detail View", ComponentDetached, Key.Alt, Key.Num3);
         }
     }
 

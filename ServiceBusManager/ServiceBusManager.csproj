@@ -8,15 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Shared\Svg\DownloadIcon.razor.css" />
-    <None Remove="Shared\Svg\Spinner.razor.css" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Shared\Svg\DownloadIcon.razor.css" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
   </ItemGroup>
 
