@@ -1,4 +1,6 @@
 ﻿@inject IConfiguration _configuration;
+@inject IHotkeyManager _hotkeyManager;
+@inject NavigationManager _navigationManager;
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Service Bus Manager<div class="environment-label">@GetEnvironmentString()</div></a>
@@ -32,6 +34,16 @@
     private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo(""), ComponentDetached, Key.Control, Key.Num1);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("manageConnections"), ComponentDetached, Key.Control, Key.Num2);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("detailView"), ComponentDetached, Key.Control, Key.Num3);
+        }
+    }
 
     private void ToggleNavMenu()
     {

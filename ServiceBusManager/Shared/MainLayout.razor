@@ -1,10 +1,10 @@
 ﻿@inherits LayoutComponentBase
 @inject ILocalStorageManager _localStorageManager;
 @inject IConnectionManager _connectionManager;
-
+@inject IHotkeyManager _hotkeyManager;
 <PageTitle>ServiceBusManager</PageTitle>
 
-<div class="page">
+<div @ref="_baseRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
@@ -22,6 +22,26 @@
 
 @code{
 
+    private ElementReference _baseRef;
+
+    private HashSet<IPressable> _currentlyPressedKeys = new HashSet<IPressable>();
+
+    /// <summary>
+    /// For Hotkeys, Subscribes to the keyboard event and invokes delegate on service
+    /// </summary>
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        _currentlyPressedKeys.Add(new Key(e.Key));
+        _currentlyPressedKeys.Add(new Code(e.Code));
+
+        _hotkeyManager.TriggerHotkey(_currentlyPressedKeys.ToArray());
+    }
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        _currentlyPressedKeys.Clear();
+    }
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -36,6 +56,7 @@
                     await _localStorageManager.RemoveConnectionFromLocalStorage(connection.Key);
                 }
             }
+            await _baseRef.FocusAsync();
         }
     }
 }

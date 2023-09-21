@@ -56,6 +56,7 @@ namespace ServiceBusManager
         private static void AddSingleton(IServiceCollection services)
         {
             services.AddSingleton<IConnectionManager, ConnectionManager>();
+            services.AddSingleton<IHotkeyManager, HotkeyManager>();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿@using System.Net.Http
+﻿@inherits CancellableComponentBase
+@using System.Net.Http
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
@@ -7,6 +8,7 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
 @using ServiceBusManager
+@using ServiceBusManager.Data.Models.Components;
 @using ServiceBusManager.Shared
 @using ServiceBusManager.Data
 @using ServiceBusManager.Data.Models
@@ -16,3 +18,4 @@
 @using ServiceBusManager.Shared.ServiceBusComponents.Modals;
 @using ServiceBusManager.Shared.ServiceBusComponents.Views;
 @using static ServiceBusManager.Data.Extensions.Constants;
+@using ServiceBusManager.Data.Models.Hotkeys;
