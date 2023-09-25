@@ -17,7 +17,7 @@ namespace ServiceBusManager.Data.Extensions
             _frequency = frequency;
         }
 
-        public void StartTimer() 
+        public void StartTimer()
         {
             _lifeTimeTracker = 0.0d;
             if (_timer is null)

@@ -19,7 +19,10 @@
             UpdateSearch();
         }
     }
-
+    public void Clear()
+    {
+        activeSearch = string.Empty;
+    }
     private void UpdateSearch()
     {
         OnSearchChanged.InvokeAsync(x => FilterStringToSearch(x).ToLower().Contains(activeSearch.ToLower()));

@@ -22,7 +22,7 @@ namespace ServiceBusManager.Data.Services
         }
 
         public async Task<Dictionary<TopicProperties, TopicRuntimeProperties>> GetTopics()
-        { 
+        {
             List<TopicProperties> topics = new List<TopicProperties>();
             List<TopicRuntimeProperties> topicRuntimes = new List<TopicRuntimeProperties>();
             await foreach (var item in _activeConnection.admin.GetTopicsAsync().AsPages())
@@ -46,11 +46,11 @@ namespace ServiceBusManager.Data.Services
             List<SubscriptionRuntimeProperties> subscriptionRuntimes = new List<SubscriptionRuntimeProperties>();
             await foreach (var item in _activeConnection.admin.GetSubscriptionsAsync(topicName).AsPages())
             {
-                subscriptions.AddRange(item.Values); 
-            }            
+                subscriptions.AddRange(item.Values);
+            }
             await foreach (var item in _activeConnection.admin.GetSubscriptionsRuntimePropertiesAsync(topicName).AsPages())
             {
-                subscriptionRuntimes.AddRange(item.Values); 
+                subscriptionRuntimes.AddRange(item.Values);
             }
             Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties> subscriptionRunDict = new Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties>();
             for (int i = 0; i < subscriptions.Count; i++)
@@ -82,7 +82,7 @@ namespace ServiceBusManager.Data.Services
                 {
                     message.ApplicationProperties.Add(item.Key, item.Value); //TODO - VALIDATE PROPERTIES ARE SENDING.... LOOKS LIKE THEY MIGHT NOT BE
                 }
-                
+
                 await _topicSender.Value.SendMessageAsync(message);
             }
             catch
@@ -91,7 +91,7 @@ namespace ServiceBusManager.Data.Services
             }
             return true;
         }
-        public async Task<bool> AddNewTopic(CreateTopicForm form) 
+        public async Task<bool> AddNewTopic(CreateTopicForm form)
         {
             var context = new ValidationContext(form);
             if (!Validator.TryValidateObject(form, context, null, true))

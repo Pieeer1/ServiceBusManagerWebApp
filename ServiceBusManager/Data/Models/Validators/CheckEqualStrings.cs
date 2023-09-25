@@ -8,7 +8,7 @@ namespace ServiceBusManager.Data.Models.Validators
 
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            if (!(value is MutableEqualStringPair mut)|| (mut.Item1 != mut.Item2))
+            if (!(value is MutableEqualStringPair mut) || (mut.Item1 != mut.Item2))
             {
                 return new ValidationResult(ErrorMessage ?? "Values are not Equal");
             }

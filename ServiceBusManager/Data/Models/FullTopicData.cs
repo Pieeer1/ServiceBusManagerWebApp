@@ -4,7 +4,7 @@ namespace ServiceBusManager.Data.Models
 {
     public class FullTopicData
     {
-        public FullTopicData(TopicProperties topicProperties, TopicRuntimeProperties topicRuntimeProperties) 
+        public FullTopicData(TopicProperties topicProperties, TopicRuntimeProperties topicRuntimeProperties)
         {
             TopicProperties = topicProperties;
             TopicRuntimeProperties = topicRuntimeProperties;

@@ -36,7 +36,7 @@ namespace ServiceBusManager.Data.Services
             }
             _activeHotkeys.Add(hotkey);
         }
-        public void UnregisterHotkey(params IPressable[] pressables) 
+        public void UnregisterHotkey(params IPressable[] pressables)
         {
             _activeHotkeys.RemoveWhere(x => x.IsHotkeyFromPressables(pressables));
         }

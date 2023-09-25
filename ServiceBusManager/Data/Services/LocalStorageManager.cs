@@ -15,7 +15,7 @@ namespace ServiceBusManager.Data.Services
         {
             _protectedLocalStorage = protectedLocalStorage;
         }
-        public async Task<Dictionary<string,string>> GetConnections() 
+        public async Task<Dictionary<string, string>> GetConnections()
         {
             Dictionary<string, string> connections = new Dictionary<string, string>();
             string unparsedConnectionStrings = (await _protectedLocalStorage.GetAsync<string>(LocalStorageKeys.SavedConnections)).Value ?? string.Empty;

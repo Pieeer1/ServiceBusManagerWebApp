@@ -23,7 +23,7 @@
                 <h2>Topics</h2>
             </div>
             <hr/>
-            <Search T="FullTopicData" OnSearchChanged="SearchChanged" FilterStringToSearch=" x => x.TopicProperties.Name"></Search>
+            <Search @ref="_topicSearchReference" T="FullTopicData" OnSearchChanged="SearchChanged" FilterStringToSearch=" x => x.TopicProperties.Name"></Search>
             <Accordion T="FullTopicData" Items="_activeTopics.Where(_filterExpression).ToList()" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic">
                 @if (_activeFullTopic?.SubscriptionRuntimeProperties is null)
                 {
@@ -72,6 +72,8 @@
     private FullTopicData? _activeFullTopic;
     private SubscriptionRuntimeProperties? _activeSubscription;
 
+    private Search<FullTopicData>? _topicSearchReference;
+
     private SendMessageOverrideDTO? _sendMessageOpenOverride;
 
     protected override async Task OnInitializedAsync()
@@ -88,6 +90,7 @@
         _activeTopics = null; // no matter what reset value of _activeTopics, triggers the @onChange in the input form
         _serviceBusClientAdminManager.SetActiveConnection(name);
         await GetTopicsFromActiveConnection();
+        _topicSearchReference?.Clear();
         if (_activeTopics?.Any() ?? false)
         {
             await SelectTopic(_activeTopics.First());

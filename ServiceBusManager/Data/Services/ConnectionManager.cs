@@ -2,7 +2,6 @@
 using Azure.Messaging.ServiceBus.Administration;
 using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
-using System.Collections;
 using System.ComponentModel.DataAnnotations;
 
 namespace ServiceBusManager.Data.Services
@@ -11,7 +10,7 @@ namespace ServiceBusManager.Data.Services
     {
         public Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)> _serviceBusClientDictionary = new Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)>();
 
-        public bool AddConnection(AddConnectionForm addConnectionForm ,out string? error)
+        public bool AddConnection(AddConnectionForm addConnectionForm, out string? error)
         {
             error = null;
             var context = new ValidationContext(addConnectionForm);
@@ -19,7 +18,7 @@ namespace ServiceBusManager.Data.Services
             {
                 return false;
             }
-            if (_serviceBusClientDictionary.Keys.Any(x => x.ToLower() == addConnectionForm.Name.ToLower()) || _serviceBusClientDictionary.Keys.Any(x => x.ToLower() == addConnectionForm.Name.ToLower())) 
+            if (_serviceBusClientDictionary.Keys.Any(x => x.ToLower() == addConnectionForm.Name.ToLower()) || _serviceBusClientDictionary.Keys.Any(x => x.ToLower() == addConnectionForm.Name.ToLower()))
             {
                 error = "Connection Already Exists";
                 return false;
@@ -37,7 +36,7 @@ namespace ServiceBusManager.Data.Services
                 return false;
             }
             return true;
-        }        
+        }
         public IEnumerable<ServiceBusConnectionViewModel> GetServiceBusConnections()
         {
             foreach (var adminPair in _serviceBusClientDictionary)

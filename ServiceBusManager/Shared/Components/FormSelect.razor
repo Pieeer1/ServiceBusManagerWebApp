@@ -1,7 +1,6 @@
 ﻿@typeparam TItem
-<div class="form-control-wrapper">
-
-    <select class="form-control-label" @onchange="ChangeHandler">
+<div class="d-flex justify-content-center align-items-center p-2">
+    <select class="form-select w-50 text-center" @onchange="ChangeHandler">
         @if (ShowDefaultOption)
         {
             <option value="0" hidden disabled>- Please Select -</option>

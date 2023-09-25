@@ -5,7 +5,7 @@
         private readonly string _value;
 
         public Code(string value)
-        { 
+        {
             _value = value;
         }
 

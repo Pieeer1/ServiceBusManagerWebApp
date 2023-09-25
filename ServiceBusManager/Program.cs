@@ -44,8 +44,8 @@ namespace ServiceBusManager
             app.Run();
         }
         private static void AddTransient(IServiceCollection services)
-        { 
-        
+        {
+
         }
         private static void AddScoped(IServiceCollection services)
         {
