@@ -1,19 +1,10 @@
 ﻿@using Azure.Messaging.ServiceBus;
 @using System.Text;
 <div class="@((((ServiceBusMessageBodies.Where(x => x.Value.Length/50 > 25).Count() >= 2) && ServiceBusMessageBodies.Count() >= 2) || ServiceBusMessageBodies.Count() > 10) ? "scroll-when-needed" : string.Empty)"> @*TODO -- LOOK AT BETTER WAYS TO DYNAMICALLY SET SCROLLBAR*@
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Message</th>
-                <th scope="col">Application Properties</th>
-                <th scope="col">Enqueued Time (UTC)</th>
-                <th scope="col">Download</th>
-                <th scope="col">Send Identical Message</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < ServiceBusReceivedMessages.Count; i++)
+    <SortableTable SortRequested="SortMessages" Columns="sortableTableColumns">
+        <Body>
+            
+            @for (int i = _isDesc ? 0 : ServiceBusReceivedMessages.Count - 1; _isDesc ? i < ServiceBusReceivedMessages.Count : i >= 0; i = _isDesc ? i + 1 : i - 1)
             {
                 int lambdaI = i;
 
@@ -23,30 +14,30 @@
                         <InputTextArea @bind-Value="ServiceBusMessageBodies[lambdaI].Value" disabled="@true" class="fuck-resize form-control" rows="@(Math.Clamp(ServiceBusMessageBodies[lambdaI].Value.Length/50, 3, 25))"></InputTextArea>
                     </td>
                     <td class="col-5 align-middle">
-                            @for(int j = 0; j < ServiceBusApplicationProperties[lambdaI].Count; j++)
+                            @for (int j = 0; j < ServiceBusApplicationProperties[lambdaI].Count; j++)
                             {
                                 int lambdaJ = j;
-                                <div class="d-flex justify-content-center" style="padding:3px;">
-                                    <div style="padding-right:3px;">
-                                        <label for="appPropKey">Key</label>
-                                        <InputTextArea @bind-Value="ServiceBusApplicationProperties[lambdaI].Keys.ElementAt(lambdaJ).Value" disabled="@true" class="fuck-resize form-control" id="appPropKey"></InputTextArea>
-                                    </div>
-                                    <div style="padding-left:3px;">
-                                    <label for="appPropValue">Value</label>
-                                        <InputTextArea @bind-Value="ServiceBusApplicationProperties[lambdaI].Values.ElementAt(lambdaJ).Value" disabled="@true" class="fuck-resize form-control" id="appPropValue"></InputTextArea>
-                                    </div>
+                            <div class="d-flex justify-content-center" style="padding:3px;">
+                                <div style="padding-right:3px;">
+                                    <label for="appPropKey">Key</label>
+                                    <InputTextArea @bind-Value="ServiceBusApplicationProperties[lambdaI].Keys.ElementAt(lambdaJ).Value" disabled="@true" class="fuck-resize form-control" id="appPropKey"></InputTextArea>
                                 </div>
+                                <div style="padding-left:3px;">
+                                    <label for="appPropValue">Value</label>
+                                    <InputTextArea @bind-Value="ServiceBusApplicationProperties[lambdaI].Values.ElementAt(lambdaJ).Value" disabled="@true" class="fuck-resize form-control" id="appPropValue"></InputTextArea>
+                                </div>
+                            </div>
                             }
                     </td>
                     <td class="col-2 align-middle">@(ServiceBusReceivedMessages.ElementAt(i).EnqueuedTime.ToString("MM/dd/yyyy HH:mm"))</td>
                     <td class="col-1 align-middle"><DownloadableContent Data="ServiceBusReceivedMessages[lambdaI].Body"></DownloadableContent></td>
                     <td class="col-1 align-middle">
-                        <SendMessageIcon OnClickCallback="() => SendIdenticalMessage(lambdaI, ServiceBusMessageBodies[lambdaI].Value, ServiceBusApplicationProperties[lambdaI].ToDictionary(x => x.Key.Value, y => y.Value.Value))"></SendMessageIcon> 
+                        <SendMessageIcon OnClickCallback="() => SendIdenticalMessage(lambdaI, ServiceBusMessageBodies[lambdaI].Value, ServiceBusApplicationProperties[lambdaI].ToDictionary(x => x.Key.Value, y => y.Value.Value))"></SendMessageIcon>
                     </td>
                 </tr>
             }
-        </tbody>
-    </table>
+        </Body>
+    </SortableTable>
 </div>
 @code {
 
@@ -54,6 +45,19 @@
     public List<ServiceBusReceivedMessage> ServiceBusReceivedMessages { get; set; } = new List<ServiceBusReceivedMessage>();
     [Parameter]
     public EventCallback<(string, Dictionary<string, string>)> SendIdenticalMessageClicked {get;set;}
+
+    private readonly List<SortableTableColumn> sortableTableColumns = new List<SortableTableColumn>()
+    {
+        new SortableTableColumn("Id", "#", true),
+        new SortableTableColumn("Message", "Message", true),
+        new SortableTableColumn("ApplicationProperties", "Application Properties", true),
+        new SortableTableColumn("EnqueuedTime", "Enqueued Time", true),
+        new SortableTableColumn("Download", "Download", false),
+        new SortableTableColumn("SendIdenticalMessage", "Send Identical Message", false),
+    };
+
+    private bool _isDesc = false;
+
 
     private List<FormResponse> ServiceBusMessageBodies { get => ServiceBusReceivedMessages.Select(x => new FormResponse() { Value = Encoding.UTF8.GetString(x.Body) }).ToList(); }
 
@@ -72,5 +76,27 @@
             await SendIdenticalMessageClicked.InvokeAsync((messageText, applicationProperties));
         }
     }
-    
+
+    public void SortMessages((string field, bool isDesc) requestedSortFields)
+    {
+        _isDesc = requestedSortFields.isDesc;
+        switch(requestedSortFields.field)
+        {
+            case "Id":
+                ServiceBusReceivedMessages = ServiceBusReceivedMessages.OrderBy(x => x.MessageId).ToList();
+                break;
+            case "Message":
+                ServiceBusReceivedMessages = ServiceBusReceivedMessages.OrderBy(x => Encoding.UTF8.GetString(x.Body.ToArray()[..8])).ToList();
+                break;
+            case "ApplicationProperties":
+                ServiceBusReceivedMessages = ServiceBusReceivedMessages.OrderBy(x => x.ApplicationProperties.Keys.FirstOrDefault()).ToList();
+                break;
+            case "EnqueuedTime":
+                ServiceBusReceivedMessages = ServiceBusReceivedMessages.OrderBy(x => x.EnqueuedTime).ToList();
+                break;
+            default:
+                break;
+        };
+    }
+
 }
