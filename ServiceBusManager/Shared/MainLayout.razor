@@ -1,7 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using ServiceBusManager.Data.Models.JS;
+@inherits LayoutComponentBase
 @inject ILocalStorageManager _localStorageManager;
 @inject IConnectionManager _connectionManager;
 @inject IHotkeyManager _hotkeyManager;
+@inject IScreenInformationService _screenInformationService;
 <PageTitle>ServiceBusManager</PageTitle>
 
 <div @ref="_baseRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" class="page">
@@ -16,7 +18,10 @@
 
         <article class="content px-4">
             @Body
-            <HotkeyAlert AlertEnabled="_alertEnabled" AlertClosedCallback="() => {_alertEnabled = false;}"></HotkeyAlert>
+            @if (_windowDimensions.Width > 640)
+            {
+                <HotkeyAlert AlertEnabled="_alertEnabled" AlertClosedCallback="() => {_alertEnabled = false;}"></HotkeyAlert>
+            }
         </article>
     </main>
 </div>
@@ -26,7 +31,7 @@
     private ElementReference _baseRef;
     private bool _alertEnabled;
     private HashSet<IPressable> _currentlyPressedKeys = new HashSet<IPressable>();
-
+    private WindowDimensions _windowDimensions;
     /// <summary>
     /// For Hotkeys, Subscribes to the keyboard event and invokes delegate on service
     /// </summary>
@@ -49,11 +54,12 @@
         {
             _hotkeyManager.RegisterHotkey(ToggleQuestion, "Show Hotkeys", null, Key.Shift, Key.Question); //TODO - IMPLEMENT HELP SCREEN. POTENTIALLY THROUGH A SERVICE        }
     }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await _screenInformationService.Init();
+            _screenInformationService.WindowResized += async (o, e) => await RecalculateWindowSize();
             foreach (var connection in await _localStorageManager.GetConnections())
             {
                 if (_connectionManager.GetServiceBusConnections().Any(x => x.Name == connection.Key)) { break; }
@@ -64,11 +70,17 @@
                     await _localStorageManager.RemoveConnectionFromLocalStorage(connection.Key);
                 }
             }
-            await _baseRef.FocusAsync();
+            await _baseRef.FocusAsync(); 
+            await RecalculateWindowSize();
         }
     }
     public void ToggleQuestion()
     {
         _alertEnabled = !_alertEnabled;
+    }
+    private async Task RecalculateWindowSize()
+    {
+        _windowDimensions = await _screenInformationService.GetScreenSize();
+        await InvokeAsync(() => StateHasChanged());
     }
 }

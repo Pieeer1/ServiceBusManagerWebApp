@@ -50,6 +50,7 @@ namespace ServiceBusManager
         private static void AddScoped(IServiceCollection services)
         {
             services.AddScoped<IJSLogger, JSLogger>();
+            services.AddScoped<IScreenInformationService, ScreenInformationService>();
             services.AddScoped<IServiceBusClientAdminManager, ServiceBusClientAdminManager>();
             services.AddScoped<ILocalStorageManager, LocalStorageManager>();
         }
