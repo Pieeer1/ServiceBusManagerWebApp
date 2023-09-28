@@ -53,6 +53,7 @@ namespace ServiceBusManager
             services.AddScoped<IScreenInformationService, ScreenInformationService>();
             services.AddScoped<IServiceBusClientAdminManager, ServiceBusClientAdminManager>();
             services.AddScoped<ILocalStorageManager, LocalStorageManager>();
+
         }
         private static void AddSingleton(IServiceCollection services)
         {

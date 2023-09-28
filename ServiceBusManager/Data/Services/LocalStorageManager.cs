@@ -2,6 +2,8 @@
 using ServiceBusManager.Data.Models;
 using ServiceBusManager.Data.Services.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using static ServiceBusManager.Data.Extensions.Constants;
 
@@ -15,6 +17,30 @@ namespace ServiceBusManager.Data.Services
         {
             _protectedLocalStorage = protectedLocalStorage;
         }
+        public async Task<LocalSettings?> GetLocalSettings()
+        {
+            string settingsString = (await _protectedLocalStorage.GetAsync<string>(LocalStorageKeys.LocalSettings)).Value ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(settingsString))
+            {
+                try
+                { 
+                    return JsonSerializer.Deserialize<LocalSettings>(settingsString);
+                }
+                catch 
+                {
+                    await _protectedLocalStorage.DeleteAsync(LocalStorageKeys.SavedConnections); // Remove Corrupted Local Settings
+                }
+            }
+            return null;
+        }
+        public async Task UpdateLocalSettings(LocalSettings localSettings)
+        { 
+            await _protectedLocalStorage.SetAsync(LocalStorageKeys.LocalSettings, JsonSerializer.Serialize(localSettings, new JsonSerializerOptions()
+            { 
+                ReferenceHandler = ReferenceHandler.IgnoreCycles // sets to null same as newtonsoft version
+            }));
+        }
+
         public async Task<Dictionary<string, string>> GetConnections()
         {
             Dictionary<string, string> connections = new Dictionary<string, string>();

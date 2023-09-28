@@ -1,0 +1,73 @@
+﻿@page "/settings"
+@inject ILocalStorageManager _localStorageManager;
+@using System.Reflection;
+@using System.Text.Json;
+@using ServiceBusManager.Data.Extensions;
+@using ServiceBusManager.Data.Models.Attributes;
+<div class="container text-center">
+    <h1>Settings</h1>
+    @if (_localSettings is null)
+    {
+        <Spinner/>
+    }
+    else
+    {
+        <EditForm Model="_localSettings">
+            <SliderCheckbox BoundValue="_localSettings.AutoCloseOnMessageSend" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
+            <button type="reset" class="btn btn-primary" @onclick="() => Reset()" disabled="@(_localSettingsCache is null)">Reset</button>
+            <button type="submit" class="btn btn-primary" @onclick="() => Submit()" disabled="@(_localSettingsCache is null)">Save</button>
+        </EditForm>
+    }
+</div>
+@code {
+    private LocalSettings? _localSettings;
+    private LocalSettings? _localSettingsCache;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _localSettings = await _localStorageManager.GetLocalSettings() ?? new LocalSettings(); //TODO - FIX THE SETTING GRAB, SOMETHING IN THE CHECKBOX IS NOT BINDING :/
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    private string GetLabelFromProperty(string propertyName)
+    {
+        return _localSettings?.GetType().GetProperty(propertyName)?.GetCustomAttribute<FriendlyNameAttribute>()?.Name ?? propertyName;
+    }
+
+    private void SettingChanged(string propertyName, object value)
+    {
+        if (_localSettingsCache is null)
+        {
+            _localSettingsCache = _localSettings?.DeepCopy();
+        }
+
+        PropertyInfo? property = _localSettings?.GetType().GetProperty(propertyName);
+
+        property?.SetValue(_localSettings, value);
+
+        if (_localSettings == _localSettingsCache)
+        {
+            _localSettingsCache = null;
+        }
+
+        InvokeAsync(() => StateHasChanged()).Wait();
+    }
+
+    private async Task Submit()
+    {
+        if (_localSettings is not null)
+        {
+            await _localStorageManager.UpdateLocalSettings(_localSettings);
+        }
+        _localSettingsCache = null;
+    }
+    private void Reset()
+    {
+        _localSettings = _localSettingsCache?.DeepCopy();
+        _localSettingsCache = null;
+    }
+
+}
