@@ -13,7 +13,7 @@
     else
     {
         <EditForm Model="_localSettings">
-            <SliderCheckbox BoundValue="_localSettings.AutoCloseOnMessageSend" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
+            <SliderCheckbox Default="_defaultAutoClose" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
             <button type="reset" class="btn btn-primary" @onclick="() => Reset()" disabled="@(_localSettingsCache is null)">Reset</button>
             <button type="submit" class="btn btn-primary" @onclick="() => Submit()" disabled="@(_localSettingsCache is null)">Save</button>
         </EditForm>
@@ -23,11 +23,17 @@
     private LocalSettings? _localSettings;
     private LocalSettings? _localSettingsCache;
 
+    private bool _defaultAutoClose = false;
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _localSettings = await _localStorageManager.GetLocalSettings() ?? new LocalSettings(); //TODO - FIX THE SETTING GRAB, SOMETHING IN THE CHECKBOX IS NOT BINDING :/
+            _localSettings = await _localStorageManager.GetLocalSettings() ?? new LocalSettings();
+
+            _defaultAutoClose = _localSettings.AutoCloseOnMessageSend;
+
             await InvokeAsync(() => StateHasChanged());
         }
     }
@@ -37,7 +43,7 @@
         return _localSettings?.GetType().GetProperty(propertyName)?.GetCustomAttribute<FriendlyNameAttribute>()?.Name ?? propertyName;
     }
 
-    private void SettingChanged(string propertyName, object value)
+    private async Task SettingChanged(string propertyName, object value)
     {
         if (_localSettingsCache is null)
         {
@@ -52,8 +58,7 @@
         {
             _localSettingsCache = null;
         }
-
-        InvokeAsync(() => StateHasChanged()).Wait();
+        await InvokeAsync(() => StateHasChanged());
     }
 
     private async Task Submit()
