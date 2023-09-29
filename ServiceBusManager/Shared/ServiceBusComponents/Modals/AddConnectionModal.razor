@@ -40,12 +40,23 @@
     private bool _hasError = false;
     private bool _spinnerActive = false;
 
+    private bool _saveConnectionsEnabled = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _saveConnectionsEnabled = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).SaveConnections;
+    }
+
+
     private async Task AddConnection()
     {
         _spinnerActive = true;
         if (_connectionManager.AddConnection(_addConnectionForm, out _errorText))
         {
-            await _localStorageManager.AddConnectionToLocalStorage(_addConnectionForm);
+            if (_saveConnectionsEnabled)
+            {
+                await _localStorageManager.AddConnectionToLocalStorage(_addConnectionForm);
+            }
             _spinnerActive = false;
             await _formModalRef.Close();
         }

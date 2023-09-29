@@ -5,6 +5,7 @@
         public static class LocalStorageKeys
         {
             public static string SavedConnections = "SavedConnections";
+            public static string LocalSettings = "LocalSettings";
         }
     }
 }

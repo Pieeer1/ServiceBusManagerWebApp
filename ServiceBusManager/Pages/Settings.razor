@@ -1,0 +1,107 @@
+﻿@page "/settings"
+@inject ILocalStorageManager _localStorageManager;
+@using System.Reflection;
+@using System.Text.Json;
+@using ServiceBusManager.Data.Extensions;
+@using ServiceBusManager.Data.Models.Attributes;
+<div class="container text-center">
+    <h1>Settings</h1>
+    @if (_localSettings is null)
+    {
+        <Spinner/>
+    }
+    else
+    {
+        <EditForm Model="_localSettings">
+            <div class="d-flex align-items-center flex-column">
+                <div class="mt-auto" style="padding:15px;">
+                    <SliderCheckbox Default="_defaultAutoClose" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
+                </div>
+                <div class="mt-auto" style="padding:15px;">
+                    <SliderCheckbox Default="_defaultSaveConnections" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.SaveConnections), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.SaveConnections)))"></SliderCheckbox>
+                </div>
+            </div>
+            <div class="d-flex align-items-center flex-column">
+                <div class="mt-auto" style="padding:15px;">
+                    <button type="reset" class="btn btn-primary" @onclick="() => Reset()" disabled="@(_localSettingsCache is null)">Reset</button>
+                </div>
+                <div class="mt-auto" style="padding:15px;">
+                    <button type="submit" class="btn btn-primary" @onclick="() => Submit()" disabled="@(_localSettingsCache is null)">Save</button>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+@code {
+    private LocalSettings? _localSettings;
+    private LocalSettings? _localSettingsCache;
+
+    private bool _defaultAutoClose = false;
+    private bool _defaultSaveConnections = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _localSettings = await _localStorageManager.GetLocalSettings() ?? new LocalSettings();
+
+            _defaultAutoClose = _localSettings.AutoCloseOnMessageSend;
+            _defaultSaveConnections = _localSettings.SaveConnections;
+
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    private string GetLabelFromProperty(string propertyName)
+    {
+        return _localSettings?.GetType().GetProperty(propertyName)?.GetCustomAttribute<FriendlyNameAttribute>()?.Name ?? propertyName;
+    }
+
+    private async Task SettingChanged(string propertyName, object value)
+    {
+        if (_localSettingsCache is null)
+        {
+            _localSettingsCache = _localSettings?.DeepCopy();
+        }
+
+        PropertyInfo? property = _localSettings?.GetType().GetProperty(propertyName);
+
+        property?.SetValue(_localSettings, value);
+
+        CheckCacheForEquality();
+
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async Task Submit()
+    {
+        if (_localSettings is not null)
+        {
+            await _localStorageManager.UpdateLocalSettings(_localSettings);
+        }
+        _localSettingsCache = null;
+    }
+    private void Reset()
+    {
+        _localSettings = _localSettingsCache?.DeepCopy();
+        _localSettingsCache = null;
+    }
+    private void CheckCacheForEquality()
+    {  
+        bool shouldRemove = true;
+        foreach (PropertyInfo propertyInfo in typeof(LocalSettings).GetProperties())
+        {
+            var t1 = propertyInfo.GetValue(_localSettings)?.ToString();
+            var t2 = propertyInfo.GetValue(_localSettingsCache)?.ToString();
+            if (propertyInfo.GetValue(_localSettings)?.ToString() != propertyInfo.GetValue(_localSettingsCache)?.ToString())
+            {
+                shouldRemove = false;
+                break;
+            }
+        }
+        if (shouldRemove)
+        {
+            _localSettingsCache = null;
+        }
+    }
+}

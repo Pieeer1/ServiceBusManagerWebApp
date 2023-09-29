@@ -6,6 +6,8 @@ namespace ServiceBusManager.Data.Services.Interfaces
     {
         Task AddConnectionToLocalStorage(AddConnectionForm addConnectionForm);
         Task<Dictionary<string, string>> GetConnections();
+        Task<LocalSettings?> GetLocalSettings();
         Task RemoveConnectionFromLocalStorage(string name);
+        Task UpdateLocalSettings(LocalSettings localSettings);
     }
 }
