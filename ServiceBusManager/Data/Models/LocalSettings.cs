@@ -6,5 +6,7 @@ namespace ServiceBusManager.Data.Models
     {
         [FriendlyName("Close Send Message Modal After Send?")]
         public bool AutoCloseOnMessageSend { get; set; }
+        [FriendlyName("Save Connections?")]
+        public bool SaveConnections { get; set; } = true;
     }
 }

@@ -14,6 +14,7 @@
     {
         <EditForm Model="_localSettings">
             <SliderCheckbox Default="_defaultAutoClose" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
+            <SliderCheckbox Default="_defaultSaveConnections" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.SaveConnections), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.SaveConnections)))"></SliderCheckbox>
             <button type="reset" class="btn btn-primary" @onclick="() => Reset()" disabled="@(_localSettingsCache is null)">Reset</button>
             <button type="submit" class="btn btn-primary" @onclick="() => Submit()" disabled="@(_localSettingsCache is null)">Save</button>
         </EditForm>
@@ -24,7 +25,7 @@
     private LocalSettings? _localSettingsCache;
 
     private bool _defaultAutoClose = false;
-
+    private bool _defaultSaveConnections = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -33,6 +34,7 @@
             _localSettings = await _localStorageManager.GetLocalSettings() ?? new LocalSettings();
 
             _defaultAutoClose = _localSettings.AutoCloseOnMessageSend;
+            _defaultSaveConnections = _localSettings.SaveConnections;
 
             await InvokeAsync(() => StateHasChanged());
         }
@@ -54,10 +56,8 @@
 
         property?.SetValue(_localSettings, value);
 
-        if (_localSettings == _localSettingsCache)
-        {
-            _localSettingsCache = null;
-        }
+        CheckCacheForEquality();
+
         await InvokeAsync(() => StateHasChanged());
     }
 
@@ -74,5 +74,22 @@
         _localSettings = _localSettingsCache?.DeepCopy();
         _localSettingsCache = null;
     }
-
+    private void CheckCacheForEquality()
+    {  
+        bool shouldRemove = true;
+        foreach (PropertyInfo propertyInfo in typeof(LocalSettings).GetProperties())
+        {
+            var t1 = propertyInfo.GetValue(_localSettings)?.ToString();
+            var t2 = propertyInfo.GetValue(_localSettingsCache)?.ToString();
+            if (propertyInfo.GetValue(_localSettings)?.ToString() != propertyInfo.GetValue(_localSettingsCache)?.ToString())
+            {
+                shouldRemove = false;
+                break;
+            }
+        }
+        if (shouldRemove)
+        {
+            _localSettingsCache = null;
+        }
+    }
 }

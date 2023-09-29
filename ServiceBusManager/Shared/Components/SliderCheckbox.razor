@@ -23,7 +23,11 @@
 
     protected override void OnParametersSet()
     {
-        _boundValue = Default;
+        if (!_firstTrigger)
+        {
+            _boundValue = Default;
+            _firstTrigger = true;
+        }
     }
 
     private async Task Toggle()
