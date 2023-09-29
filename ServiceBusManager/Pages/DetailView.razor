@@ -95,8 +95,10 @@
     {
         _activeServiceBusConnections = _connectionManager.GetServiceBusConnections().ToList();
         await InvokeAsync(() => StateHasChanged());
-        await SetActiveConnection(_activeServiceBusConnections.First().Name);
-
+        if (_activeServiceBusConnections.Any())
+        {
+            await SetActiveConnection(_activeServiceBusConnections.First().Name);
+        }
     }
 
     private async Task SetActiveConnection(string name)
