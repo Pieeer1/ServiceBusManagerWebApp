@@ -40,20 +40,26 @@
     private List<ServiceBusConnectionViewModel>? _activeConnections;
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        ReprocessConnections();
+        await ReprocessConnections();
+
+        if (_connectionManager.DistinctRefreshers.Add(typeof(ManageConnections)))
+        {
+            _connectionManager.OnRefresh += async (o, e) => await ReprocessConnections();
+        }
     }
 
-    private void RemoveConnection(string name)
+    private async Task RemoveConnection(string name)
     {
         _connectionManager.RemoveConnection(name);
-        _localStorageManager.RemoveConnectionFromLocalStorage(name);
-        ReprocessConnections();
+        await _localStorageManager.RemoveConnectionFromLocalStorage(name);
+        await ReprocessConnections();
     }
 
-    private void ReprocessConnections()
+    private async Task ReprocessConnections()
     {
         _activeConnections = _connectionManager.GetServiceBusConnections().ToList();
+        await InvokeAsync(() => StateHasChanged());
     }
 }

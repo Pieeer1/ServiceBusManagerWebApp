@@ -70,6 +70,7 @@
                     await _localStorageManager.RemoveConnectionFromLocalStorage(connection.Key);
                 }
             }
+            _connectionManager.RefreshRequested();
             await _baseRef.FocusAsync(); 
             await RecalculateWindowSize();
         }

@@ -10,6 +10,8 @@ namespace ServiceBusManager.Data.Services
     {
         public Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)> _serviceBusClientDictionary = new Dictionary<string, (ServiceBusClient client, ServiceBusAdministrationClient admin)>();
 
+        public event EventHandler? OnRefresh;
+        public HashSet<Type> DistinctRefreshers { get; private set; } = new HashSet<Type>();
         public bool AddConnection(AddConnectionForm addConnectionForm, out string? error)
         {
             error = null;
@@ -49,5 +51,11 @@ namespace ServiceBusManager.Data.Services
         {
             _serviceBusClientDictionary.Remove(name);
         }
+
+        public void RefreshRequested()
+        {
+            OnRefresh?.Invoke(this, EventArgs.Empty);
+        }
+
     }
 }

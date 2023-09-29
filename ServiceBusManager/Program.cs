@@ -53,8 +53,8 @@ namespace ServiceBusManager
             services.AddScoped<IScreenInformationService, ScreenInformationService>();
             services.AddScoped<IServiceBusClientAdminManager, ServiceBusClientAdminManager>();
             services.AddScoped<ILocalStorageManager, LocalStorageManager>();
-            services.AddSingleton<IConnectionManager, ConnectionManager>();
-            services.AddSingleton<IHotkeyManager, HotkeyManager>();
+            services.AddScoped<IConnectionManager, ConnectionManager>();
+            services.AddScoped<IHotkeyManager, HotkeyManager>();
         }
         private static void AddSingleton(IServiceCollection services)
         {

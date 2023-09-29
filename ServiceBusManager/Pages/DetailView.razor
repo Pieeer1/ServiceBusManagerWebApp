@@ -79,10 +79,24 @@
     protected override async Task OnInitializedAsync()
     {
         _activeServiceBusConnections = _connectionManager.GetServiceBusConnections().ToList();
+
+        if (_connectionManager.DistinctRefreshers.Add(typeof(DetailView)))
+        { 
+            _connectionManager.OnRefresh += async (o, e) => await Refresh();
+        }
+
         if (_activeServiceBusConnections.Any())
         {
             await SetActiveConnection(_activeServiceBusConnections.First().Name);
         }
+    }
+
+    private async Task Refresh()
+    {
+        _activeServiceBusConnections = _connectionManager.GetServiceBusConnections().ToList();
+        await InvokeAsync(() => StateHasChanged());
+        await SetActiveConnection(_activeServiceBusConnections.First().Name);
+
     }
 
     private async Task SetActiveConnection(string name)
