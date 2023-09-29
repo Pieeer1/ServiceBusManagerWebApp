@@ -42,11 +42,13 @@
 
     private bool _saveConnectionsEnabled = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _saveConnectionsEnabled = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).SaveConnections;
+        if (firstRender)
+        {
+            _saveConnectionsEnabled = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).SaveConnections;
+        }
     }
-
 
     private async Task AddConnection()
     {

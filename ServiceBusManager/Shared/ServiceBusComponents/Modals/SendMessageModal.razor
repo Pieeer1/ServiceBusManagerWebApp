@@ -78,10 +78,14 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _closeModalAfterSending = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).AutoCloseOnMessageSend;
+        if (firstRender)
+        {
+            _closeModalAfterSending = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).AutoCloseOnMessageSend;
+        }
     }
+
 
     public async Task Open(SendMessageOverrideDTO? overrideDto = null)
     {
