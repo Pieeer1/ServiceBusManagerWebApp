@@ -13,10 +13,22 @@
     else
     {
         <EditForm Model="_localSettings">
-            <SliderCheckbox Default="_defaultAutoClose" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
-            <SliderCheckbox Default="_defaultSaveConnections" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.SaveConnections), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.SaveConnections)))"></SliderCheckbox>
-            <button type="reset" class="btn btn-primary" @onclick="() => Reset()" disabled="@(_localSettingsCache is null)">Reset</button>
-            <button type="submit" class="btn btn-primary" @onclick="() => Submit()" disabled="@(_localSettingsCache is null)">Save</button>
+            <div class="d-flex align-items-center flex-column">
+                <div class="mt-auto" style="padding:15px;">
+                    <SliderCheckbox Default="_defaultAutoClose" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.AutoCloseOnMessageSend), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.AutoCloseOnMessageSend)))"></SliderCheckbox>
+                </div>
+                <div class="mt-auto" style="padding:15px;">
+                    <SliderCheckbox Default="_defaultSaveConnections" ClickCallback="@((a) => SettingChanged(nameof(_localSettings.SaveConnections), a))" Label="@(GetLabelFromProperty(nameof(_localSettings.SaveConnections)))"></SliderCheckbox>
+                </div>
+            </div>
+            <div class="d-flex align-items-center flex-column">
+                <div class="mt-auto" style="padding:15px;">
+                    <button type="reset" class="btn btn-primary" @onclick="() => Reset()" disabled="@(_localSettingsCache is null)">Reset</button>
+                </div>
+                <div class="mt-auto" style="padding:15px;">
+                    <button type="submit" class="btn btn-primary" @onclick="() => Submit()" disabled="@(_localSettingsCache is null)">Save</button>
+                </div>
+            </div>
         </EditForm>
     }
 </div>
