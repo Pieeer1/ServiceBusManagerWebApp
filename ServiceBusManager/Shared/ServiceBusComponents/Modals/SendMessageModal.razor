@@ -2,6 +2,7 @@
 @using System.Drawing;
 @using System.ComponentModel.DataAnnotations;
 @inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+@inject ILocalStorageManager _localStorageManager;
 
 <FormModal T="SendMessageForm" Model="_sendMessageForm" @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="_spinnerActive" OnModalClosed="ModalClosed">
     <ModalButtonLabel>Send Message</ModalButtonLabel>
@@ -34,6 +35,8 @@
     private bool _spinnerActive = false;
     private bool _hasError = false;
 
+    private bool _closeModalAfterSending = false;
+
     private Dictionary<string, string>? _defaultDictionarySet { get; set; }
 
     private async Task SendMessage()
@@ -48,7 +51,10 @@
                 if (await _serviceBusClientAdminManager.SendServiceBusMessage(ActiveFullTopic.TopicProperties.Name, _sendMessageForm))
                 {
                     _spinnerActive = false;
-                    await _sendMessageModal.Close();
+                    if (_closeModalAfterSending)
+                    {
+                        await _sendMessageModal.Close();
+                    }
                 }
                 else
                 {
@@ -70,6 +76,11 @@
         {
             await Open(OpenOverride);
         }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _closeModalAfterSending = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).AutoCloseOnMessageSend;
     }
 
     public async Task Open(SendMessageOverrideDTO? overrideDto = null)
