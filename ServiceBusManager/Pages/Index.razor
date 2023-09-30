@@ -1,7 +1,42 @@
 ﻿@page "/"
+@inject NavigationManager _navigationManager;
 
 <PageTitle>Service Bus Manager</PageTitle>
 
-<h1>Service Bus Manager</h1>
+<Hero LargeTitle="Service Bus Manager">
+    <Body>
+        <p class="lead mb-4">The One Stop Shop for All Things Service Bus. Create, Manage, and Receive Messages for Azure Service Bus</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <button type="button" class="btn btn-primary btn-lg px-4 gap-3" @onclick="@(() => NavigateTo("manageConnections"))">Connect to a Server</button>
+            <button type="button" class="btn btn-outline-secondary btn-lg px-4" @onclick="@(() => NavigateTo("detailView"))">View Details</button>
+        </div>
+    </Body>
+</Hero>
 
-The One Stop Shop for all things Service Bus
+<div class="divider"></div>
+
+<Hero LargeTitle="Send Messages your Way">
+    <Body>
+        <p class="lead mb-4">Send Messages Easily, Quickly, and Dynamically</p>
+        <div class="container px-5">
+            <img src="images/ExampleSendMessage.png" class="img-fluid border rounded-3 shadow-lg mb-4" alt="Example image" width="700" height="500" loading="lazy">
+        </div>
+    </Body>
+</Hero>
+
+<div class="divider"></div>
+
+<Hero LargeTitle="Receive Messages Easily">
+    <Body>
+        <p class="lead mb-4">Grab Messages from Subscriptions, and Easily Filter</p>
+        <div class="container px-5">
+            <img src="images/ExampleReceiveMessage.png" class="img-fluid border rounded-3 shadow-lg mb-4" alt="Example image" width="700" height="500" loading="lazy">
+        </div>
+    </Body>
+</Hero>
+
+@code{
+    private void NavigateTo(string endpoint) => _navigationManager.NavigateTo(endpoint);
+
+
+}
