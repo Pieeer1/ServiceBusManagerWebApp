@@ -7,9 +7,19 @@
     {
         <div class="accordion-item">
             <h4 class="accordion-header">
-                <button @onclick="() => AccordionClicked(item)" class="accordion-button @(ShouldCollapse(item) ? "collapsed" : string.Empty)" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="@(ShouldCollapse(item) ? "true" : "false")" aria-controls="collapseOne">
-                    @HeaderTextSelector?.Invoke(item)
-                </button>
+                <div class="d-flex flex-row align-items-center">
+                    <div class="m-auto w-100">
+                        <button @onclick="() => AccordionClicked(item)" class="accordion-button @(ShouldCollapse(item) ? "collapsed" : string.Empty)" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="@(ShouldCollapse(item) ? "true" : "false")" aria-controls="collapseOne">
+                            @HeaderTextSelector?.Invoke(item)
+                        </button>
+                    </div>
+                        @if (AdditionalRightIcon is not null)
+                        {
+                            <div class="p-2" @onclick="() => AdditionalRightIconClicked(item)" style="@_additionalRightItemHover" @onmouseover="@(() => _additionalRightItemHover = "cursor:pointer;")" @onmouseleave="@(() => _additionalRightItemHover = string.Empty)">
+                                @AdditionalRightIcon
+                            </div>
+                        }
+                </div>
             </h4>
                 <div class="accordion-collapse collapse @(ShouldCollapse(item) ? string.Empty :"show")">
                 <div class="accordion-body">
@@ -36,6 +46,12 @@
     public Func<T,Task>? OnSelectionCallbackAsync { get; set; }
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public RenderFragment? AdditionalRightIcon { get; set; }
+    [Parameter]
+    public EventCallback AdditionalRightIconClick { get; set; }
+
+    private string _additionalRightItemHover = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -56,4 +72,18 @@
         }
     }
     private bool ShouldCollapse(T t) => SelectedItem != t;
+
+    private async Task AdditionalRightIconClicked(T t)
+    {
+        if (SelectedItem != t)
+        {
+            SelectedItem = t;
+            OnSelectionCallback?.Invoke();
+            OnSelectionCallbackAsync?.Invoke(SelectedItem);
+        }
+        else if (AdditionalRightIconClick.HasDelegate)
+        {
+            await AdditionalRightIconClick.InvokeAsync();    
+        }
+    }
 }

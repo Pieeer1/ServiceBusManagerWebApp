@@ -24,35 +24,39 @@
             </div>
             <hr/>
             <Search @ref="_topicSearchReference" T="FullTopicData" OnSearchChanged="SearchChanged" FilterStringToSearch=" x => x.TopicProperties.Name"></Search>
-            <Accordion T="FullTopicData" Items="_activeTopics.Where(_filterExpression).ToList()" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic">
-                @if (_activeFullTopic?.SubscriptionRuntimeProperties is null)
-                {
-                    <Spinner></Spinner>
-                }
-                else
-                {
+            <Accordion T="FullTopicData" Items="_activeTopics.Where(_filterExpression).ToList()" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic" AdditionalRightIconClick="RefreshSubscriptions">
+                <AdditionalRightIcon>
+                    <span class="bi bi-arrow-clockwise"></span>
+                </AdditionalRightIcon>
+                <ChildContent>
+                    @if (_activeFullTopic?.SubscriptionRuntimeProperties is null)
+                    {
+                        <Spinner></Spinner>
+                    }
+                    else
+                    {
+                        <SendMessageModal ActiveFullTopic="_activeFullTopic" OnModalClosed="RefreshSubscriptions" OpenOverride="@_sendMessageOpenOverride" />
+                        <AddSubscriptionModal ActiveFullTopic="_activeFullTopic" OnSubscriptionAdded="RefreshSubscriptions"></AddSubscriptionModal>
+                        <RemoveTopicModal ActiveFullTopic="_activeFullTopic" TopicRemoved="GetTopicsFromActiveConnection" />
 
-                    <SendMessageModal ActiveFullTopic="_activeFullTopic" OnModalClosed="RefreshSubscriptions" OpenOverride="@_sendMessageOpenOverride" />
-                    <AddSubscriptionModal ActiveFullTopic="_activeFullTopic" OnSubscriptionAdded="RefreshSubscriptions"></AddSubscriptionModal>
-                    <RemoveTopicModal ActiveFullTopic="_activeFullTopic" TopicRemoved="GetTopicsFromActiveConnection" />
+                        <hr />
 
-                    <hr />
+                        <div>
+                            <h2>Subscriptions</h2>
+                        </div>
 
-                    <div>
-                        <h2>Subscriptions</h2>
-                    </div>
+                        <hr />
 
-                    <hr />
-
-                    <Accordion 
-                        T="SubscriptionRuntimeProperties" 
-                        Items="_activeFullTopic.SubscriptionRuntimeProperties.ToList()" 
-                        HeaderTextSelector="@(x => $"{x.SubscriptionName} - ({x.ActiveMessageCount}, {x.DeadLetterMessageCount})")" 
-                        OnSelectionCallbackAsync="SelectSubscription">
-                        <ReceiveMessagesModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SendIdenticalMessageClicked="SendIdenticalMessagePressed"></ReceiveMessagesModal>
-                        <RemoveSubscriptionModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SubscriptionRemoved="RefreshSubscriptions"></RemoveSubscriptionModal>
-                    </Accordion>
-                }
+                        <Accordion 
+                            T="SubscriptionRuntimeProperties" 
+                            Items="_activeFullTopic.SubscriptionRuntimeProperties.ToList()" 
+                            HeaderTextSelector="@(x => $"{x.SubscriptionName} - ({x.ActiveMessageCount}, {x.DeadLetterMessageCount})")" 
+                            OnSelectionCallbackAsync="SelectSubscription">
+                            <ReceiveMessagesModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SendIdenticalMessageClicked="SendIdenticalMessagePressed"></ReceiveMessagesModal>
+                            <RemoveSubscriptionModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SubscriptionRemoved="RefreshSubscriptions"></RemoveSubscriptionModal>
+                        </Accordion>
+                    }
+                </ChildContent>
             </Accordion>
         }
     }
