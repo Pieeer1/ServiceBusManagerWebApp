@@ -29,7 +29,7 @@
                     <span class="bi bi-arrow-clockwise"></span>
                 </AdditionalRightIcon>
                 <ChildContent>
-                    @if (_activeFullTopic?.SubscriptionRuntimeProperties is null)
+                    @if (_activeFullTopic?.SubscriptionRuntimeProperties is null || _refreshing)
                     {
                         <Spinner></Spinner>
                     }
@@ -79,6 +79,8 @@
     private Search<FullTopicData>? _topicSearchReference;
 
     private SendMessageOverrideDTO? _sendMessageOpenOverride;
+
+    private bool _refreshing = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,7 +151,16 @@
     }
     private async Task RefreshSubscriptions()
     {
+
         if (_activeFullTopic is not null)
+        {
+            _refreshing = true;
+            await Refresh();
+            _refreshing = false;
+        }
+
+
+        async Task Refresh()
         {
             Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties> resp = (await _serviceBusClientAdminManager.GetSubscriptions(_activeFullTopic.TopicProperties.Name));
             _activeFullTopic.SubscriptionProperties = resp.Select(x => x.Key);
