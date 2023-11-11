@@ -179,24 +179,36 @@ namespace ServiceBusManager.Data.Services
             }
             try
             {
-                await using (var receiver = _activeConnection.client.CreateReceiver(form.TopicName, form.SubscriptionName, new ServiceBusReceiverOptions()
+                await using var receiver = _activeConnection.client.CreateReceiver(form.TopicName, form.SubscriptionName, new ServiceBusReceiverOptions()
                 {
                     ReceiveMode = ServiceBusReceiveMode.PeekLock,
                     PrefetchCount = form.MessageCount,
                     SubQueue = form.IsDLQ ? SubQueue.DeadLetter : SubQueue.None
-                }))
+                });
+
+                if (form.MessageCount > 249)
                 {
-                    foreach (var message in await receiver.PeekMessagesAsync(form.MessageCount))
+                    for (int i = 0; i < ((form.MessageCount / 250)+1); i++)
                     {
-                        receivedMessages.Add(message);
+                        int messageCountForThisIteration = Math.Clamp(form.MessageCount - (i * 250), 0, 250);
+
+                        await AddRangeOfMessages(receivedMessages, receiver, messageCountForThisIteration, receivedMessages.LastOrDefault()?.SequenceNumber ?? 0);
                     }
+                }
+                else
+                {
+                    await AddRangeOfMessages(receivedMessages, receiver, form.MessageCount, 0);
                 }
             }
             catch
             {
                 return (null, false);
             }
-            return (receivedMessages, true);
+            return (receivedMessages.DistinctBy(x => x.MessageId), true);
+        }
+        private async Task AddRangeOfMessages(List<ServiceBusReceivedMessage> receivedMessages, ServiceBusReceiver receiver, int messageCount, long sequence)
+        { 
+            receivedMessages.AddRange(await receiver.PeekMessagesAsync(messageCount, sequence));
         }
     }
 }
