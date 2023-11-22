@@ -1,0 +1,118 @@
+﻿@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
+@using Azure.Messaging.ServiceBus;
+@using System.Text;
+@inject IServiceBusClientAdminManager _serviceBusAdminClientManager;
+
+<FormModal 
+    @ref="_formModalRef" 
+    T="ReceiveMessageForm" 
+    Model="_receiveMessageForm" 
+    SecondaryButtonText="@(_receivedMessages.Any() ? "Receive New Messages" : _receiveMessageForm.MessageCount > 1 ? "Receive Messages" : "Receive Message")" 
+    SecondaryButtonAction="ReceiveMessagesClicked" 
+    SecondaryButtonDisabled="_spinnerActive" 
+    OnModalClosed="ClearFields">
+    <ModalButtonLabel>Receive Messages</ModalButtonLabel>
+    <Title>Receive Messages - @ActiveFullTopic?.TopicProperties.Name</Title>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner />
+        }
+        else if (_receivedMessages.Any())
+        {
+            <MessageDisplayView ServiceBusReceivedMessages="_receivedMessages" SendIdenticalMessageClicked="(a) => SendIdenticalMessage(a.Item1, a.Item2)"></MessageDisplayView>
+        }
+        else
+        {
+            <ValidationSummary />
+
+            <div class="d-flex justify-content-center">
+                <div>
+                    <SliderCheckbox Label="Receive Dead Letter Messages?" ClickCallback="DLQToggled"></SliderCheckbox>
+                </div>
+                <div>
+                    <label for="messageCount">How Many Messages?</label>
+                    <InputNumber class="form-control" @bind-Value="_receiveMessageForm.MessageCount" id="messageCount"></InputNumber>
+                </div>
+            </div>
+
+
+            <Snackbar Message="Error Sending Message" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
+        }
+    </ModalBody>
+</FormModal>
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public string SubscriptionName { get; set; } = null!;
+    [Parameter]
+    public EventCallback<(ReceiveMessagesModal, SendMessageOverrideDTO)> SendIdenticalMessageClicked { get; set; }
+
+    private ReceiveMessageForm _receiveMessageForm = new ReceiveMessageForm();
+
+    private bool _isDLQ = false;
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+
+    private FormModal<ReceiveMessageForm> _formModalRef = null!;
+
+    private List<ServiceBusReceivedMessage> _receivedMessages = new List<ServiceBusReceivedMessage>();
+
+    public async Task ReceiveMessagesClicked()
+    {
+        if (!_receivedMessages.Any())
+        {
+            await ReceiveMessages();
+        }
+        else
+        {
+            ClearFields();    
+        }
+    }
+
+    public async Task ReceiveMessages()
+    {
+        _spinnerActive = true;
+        _receiveMessageForm.TopicName = ActiveFullTopic.TopicProperties.Name;
+        _receiveMessageForm.SubscriptionName = SubscriptionName;
+        _receiveMessageForm.IsDLQ = _isDLQ;
+        var messagesWithErrors = await _serviceBusAdminClientManager.RetrieveMessages(_receiveMessageForm);
+        if (messagesWithErrors.Item2)
+        {
+            _spinnerActive = false;
+            _receivedMessages = messagesWithErrors.messages?.ToList() ?? new List<ServiceBusReceivedMessage>();
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_receiveMessageForm);
+            _hasError = Validator.TryValidateObject(_receiveMessageForm, context, null, true);
+        }
+        _isDLQ = false;
+    }
+
+    private void DLQToggled(bool val)
+    {
+        _isDLQ = val;
+    }
+
+    public async Task Close()
+    {
+        await _formModalRef.Close();    
+    }
+
+    public void ClearFields()
+    {
+        _receivedMessages = new List<ServiceBusReceivedMessage>();
+    }
+
+    public async Task SendIdenticalMessage(string messageText, Dictionary<string, string> applicationProperties)
+    {
+        if (SendIdenticalMessageClicked.HasDelegate)
+        {
+            await SendIdenticalMessageClicked.InvokeAsync((this, new SendMessageOverrideDTO() { Message = messageText, ApplicationProperties = applicationProperties }));
+        }
+    }
+}

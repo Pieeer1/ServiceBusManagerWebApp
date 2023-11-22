@@ -1,0 +1,57 @@
+﻿@inject IHotkeyManager _hotkeyManager;
+<div style="position: absolute; bottom:3px; right:3px;">
+    <Alert Enabled="AlertEnabled" OnCloseCallback="AlertClosed">
+        <h2>Currently Enabled Hotkeys</h2>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Hotkey</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var hotkey in _hotkeyManager.GetActiveHotkeys())
+                    {
+                        <tr>
+                            <td>
+                                @foreach (string? str in hotkey.Pressables.Select(x => x.ToString()))
+                                {
+                                    <div class="badge bg-secondary">
+                                        @str
+                                    </div>
+                                    <div></div>
+                                }
+                            </td>
+                            <td>
+                                @hotkey.ActionExplanation
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </Alert>
+    <div class="dot text-white float-end text-center align-content-center justify-content-center position-sticky" style="@(_mouseHandle ? "cursor:pointer" : string.Empty)" @onmouseover="() => _mouseHandle = true" @onmouseleave="() => _mouseHandle = false" @onclick="ToggleQuestion">?</div>
+</div>
+@code {
+    [Parameter]
+    public bool AlertEnabled { get; set; }
+    [Parameter]
+    public EventCallback AlertClosedCallback { get; set; }
+
+    private bool _mouseHandle;
+
+
+    public async Task AlertClosed()
+    {
+        if (AlertClosedCallback.HasDelegate)
+        {
+            await AlertClosedCallback.InvokeAsync();    
+        }
+    }
+    public void ToggleQuestion()
+    {
+        AlertEnabled = !AlertEnabled;
+    }
+}

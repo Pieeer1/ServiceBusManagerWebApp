@@ -1,0 +1,95 @@
+﻿@typeparam T where T : class
+
+<button type="button" class="btn @(ButtonClassOverride is not null ? ButtonClassOverride : "btn-primary")" data-bs-toggle="modal" data-bs-target="#modalDefault" @onclick="() => Open()">
+    @ModalButtonLabel
+</button>
+
+<div class="modal @_modalClass" id="modalDefault" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true" style="display:@_modalDisplay; overflow-y: auto">
+    <div class="modal-dialog @ModalTypeOverride.GetCssFromModalType()">
+        <EditForm Model="@Model">
+        <DataAnnotationsValidator/>
+        <div class="modal-content">
+            <div class="modal-header">
+                <Expand OnClickCallback="() => ToggleModalType()" />
+                <h1 class="modal-title fs-5 mx-auto" id="modalLabel">@Title</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+            </div>
+            <div class="modal-body">
+                @ModalBody
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="() => Close()">Close</button>
+                <button type="submit" class="btn @(ButtonClassOverride is not null ? ButtonClassOverride : "btn-primary")" @onclick="() => SecondaryButtonAction.InvokeAsync()" disabled="@(SecondaryButtonDisabled)">@SecondaryButtonText</button>
+            </div>
+        </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (_showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+@code {
+    [Parameter]
+    public RenderFragment? ModalButtonLabel { get; set; }
+    [Parameter]
+    public RenderFragment? Title { get; set; }
+    [Parameter]
+    public RenderFragment? ModalBody { get; set; }
+    [Parameter]
+    public string SecondaryButtonText { get; set; } = "Save Changes";
+    [Parameter]
+    public EventCallback SecondaryButtonAction { get; set; }
+    [Parameter]
+    public bool SecondaryButtonDisabled { get; set; } = false;
+    [Parameter]
+    public T Model { get; set; } = null!;
+    [Parameter]
+    public string? ButtonClassOverride { get; set; }
+    [Parameter]
+    public EventCallback OnModalOpened { get; set; }
+    [Parameter]
+    public EventCallback OnModalClosed { get; set; }
+    [Parameter]
+    public ModalType ModalTypeOverride { get; set; } = ModalType.Large;
+
+    private ModalType _cachedModalType;
+
+    private string _modalDisplay = "none;";
+    private string _modalClass = string.Empty;
+    private bool _showBackdrop = false;
+
+    public async Task Open()
+    {
+        _modalDisplay = "block;";
+        _modalClass = "show";
+        _showBackdrop = true;
+        if (OnModalOpened.HasDelegate)
+        {
+            await OnModalOpened.InvokeAsync();
+        }
+    }
+    public async Task Close()
+    {
+        _modalDisplay = "none;";
+        _modalClass = string.Empty;
+        _showBackdrop = false;
+        if (OnModalClosed.HasDelegate)
+        {
+            await OnModalClosed.InvokeAsync();
+        }
+    }
+    public void ToggleModalType()
+    {
+        if (ModalTypeOverride == ModalType.Fullscreen)
+        {
+            ModalTypeOverride = _cachedModalType;
+        }
+        else
+        {
+            _cachedModalType = ModalTypeOverride;
+            ModalTypeOverride = ModalType.Fullscreen;
+        }
+    }
+}

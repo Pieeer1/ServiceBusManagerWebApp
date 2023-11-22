@@ -1,0 +1,30 @@
+﻿@typeparam T where T : class
+<div class="search-wrapper">
+    <input class="search-input" type="text" @bind-Value="activeSearch" @bind-Value:event="oninput" placeholder="Search..."></input>
+</div>
+
+@code {
+    [Parameter]
+    public Func<T, string> FilterStringToSearch { get; set; } = null!;
+    [Parameter]
+    public EventCallback<Func<T, bool>> OnSearchChanged { get; set; }
+
+
+    private string _activeSearch = string.Empty;
+    private string activeSearch
+    {
+        get => _activeSearch; set
+        {
+            _activeSearch = value;
+            UpdateSearch();
+        }
+    }
+    public void Clear()
+    {
+        activeSearch = string.Empty;
+    }
+    private void UpdateSearch()
+    {
+        OnSearchChanged.InvokeAsync(x => FilterStringToSearch(x).ToLower().Contains(activeSearch.ToLower()));
+    }
+}

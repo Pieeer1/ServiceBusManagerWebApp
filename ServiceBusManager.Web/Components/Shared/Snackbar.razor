@@ -1,0 +1,63 @@
+﻿@using System.Threading.Tasks;
+@using System.Diagnostics;
+@using System.Drawing;
+@using ServiceBusManager.Web.Extensions;
+
+@if (Active)
+{
+    <div class="modal modal-sheet position-static d-block bg-body-secondary p-4 py-md-5" tabindex="-1" role="dialog" id="modalSheet">
+        <div class="modal-dialog" role="document">
+            <div style="background-color:@ColorTranslator.ToHtml(BackgroundColor)" class="modal-content rounded-4 shadow">
+                <div class="modal-header border-bottom-0">
+                    <h1 style="color:@ColorTranslator.ToHtml(TextColor)" class="modal-title fs-5">@Message</h1>
+                    <button @onclick="RemoveWindow" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+    [Parameter]
+    public bool Active { get; set; }
+    [Parameter]
+    public int Lifetime { get; set; } = -1;
+
+    [Parameter]
+    public Color BackgroundColor { get; set; } = Color.White;
+    [Parameter]
+    public Color TextColor { get; set; } = Color.Black;
+
+    private BlazorTimer _timer = null!;
+
+    [Parameter]
+    public EventCallback OnDeath { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _timer = new BlazorTimer(() =>
+        {
+            RemoveWindow();
+            Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
+        }, Lifetime);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (Lifetime != -1)
+        {
+            _timer.StartTimer();
+        }
+    }
+    private void RemoveWindow()
+    {
+        Active = false;
+        if (OnDeath.HasDelegate)
+        {
+            InvokeAsync(() => OnDeath.InvokeAsync());
+        }
+    }
+}

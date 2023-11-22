@@ -1,0 +1,37 @@
+﻿@typeparam TItem
+<div class="d-flex justify-content-center align-items-center p-2">
+    <select class="form-select w-50 text-center" @onchange="ChangeHandler">
+        @if (ShowDefaultOption)
+        {
+            <option value="0" hidden disabled>- Please Select -</option>
+        }
+        @foreach (var (id, item) in idDictionary)
+        {
+            @if (Selector is not null)
+            {
+                <option value="@id">@(Selector(item).ToString())</option>
+            }
+        }
+    </select>
+</div>
+@code {
+    [Parameter] public IList<TItem> Items { get; set; } = null!;
+    [Parameter] public Func<TItem, object>? Selector { get; set; }
+    [Parameter] public EventCallback<TItem> ValueChanged { get; set; }
+    [Parameter] public bool ShowDefaultOption { get; set; } = true;
+
+    private Dictionary<Guid, TItem> idDictionary = new Dictionary<Guid, TItem>();
+
+    protected override void OnInitialized()
+    {
+        idDictionary = new Dictionary<Guid, TItem>();
+        Items.ToList().ForEach(x => idDictionary.Add(Guid.NewGuid(), x));
+    }
+    private async Task ChangeHandler(ChangeEventArgs args)
+    {
+        if (idDictionary.TryGetValue(Guid.Parse(args.Value?.ToString() ?? ""), out var selectedItem))
+        {
+            await ValueChanged.InvokeAsync(selectedItem);
+        }
+    }
+}

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34003.232
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceBusManager", "ServiceBusManager\ServiceBusManager.csproj", "{3625C7CF-A3AA-4B04-A79E-D038D212CAA9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBusManager.Web", "ServiceBusManager.Web\ServiceBusManager.Web.csproj", "{5A47D2BB-E9F1-452C-AEB9-FEC5BE41FD12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{3625C7CF-A3AA-4B04-A79E-D038D212CAA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3625C7CF-A3AA-4B04-A79E-D038D212CAA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3625C7CF-A3AA-4B04-A79E-D038D212CAA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A47D2BB-E9F1-452C-AEB9-FEC5BE41FD12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A47D2BB-E9F1-452C-AEB9-FEC5BE41FD12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A47D2BB-E9F1-452C-AEB9-FEC5BE41FD12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A47D2BB-E9F1-452C-AEB9-FEC5BE41FD12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

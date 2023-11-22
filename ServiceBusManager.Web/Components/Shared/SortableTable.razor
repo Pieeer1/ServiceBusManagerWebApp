@@ -1,0 +1,60 @@
+﻿@using System.Reflection;
+
+<div class="table-wrapper">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                @foreach (SortableTableColumn col in Columns)
+                {
+                    @if (col.IsSortable)
+                    {       
+                        <th @onclick="() => SortColumnTriggered(col.Name)" class="@_hoverClass @(_flipperTracker.Value ? "dropup" : string.Empty)" @onmouseover="@(() => _hoverClass = "over")" @onmouseleave="@(() => _hoverClass = string.Empty)" scope="col">
+                            <div class="@(_flipperTracker.Key == col.Name ? "dropdown-toggle" : string.Empty)">@col.DisplayName</div>
+                        </th>
+                    }
+                    else
+                    {
+                        <th scope="col">@col.DisplayName</th>
+                    }
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @Body
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter]
+    public List<SortableTableColumn> Columns { get; set; } = null!;
+    [Parameter]
+    public EventCallback<(string field, bool isDesc)> SortRequested { get; set; }
+    [Parameter]
+    public RenderFragment? Body { get; set; }
+    public KeyValuePair<string, bool> _flipperTracker;
+
+    private string _hoverClass = string.Empty;
+
+
+    protected override void OnInitialized()
+    {
+        _flipperTracker = new KeyValuePair<string, bool>(Columns.First().Name, false);
+    }
+
+    public async Task SortColumnTriggered(string columnReflectionName)
+    {
+        if (_flipperTracker.Key != columnReflectionName)
+        {
+            _flipperTracker = new KeyValuePair<string, bool>(columnReflectionName, false);
+        }
+        else
+        {
+            _flipperTracker = new KeyValuePair<string, bool>(columnReflectionName, !_flipperTracker.Value);    
+        }
+        if (SortRequested.HasDelegate)
+        {
+            await SortRequested.InvokeAsync((_flipperTracker.Key, _flipperTracker.Value));
+        }
+    }
+}

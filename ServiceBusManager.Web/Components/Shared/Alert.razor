@@ -1,0 +1,23 @@
+﻿<div class="alert alert-secondary alert-dismissible fade @(Enabled ? "show" : string.Empty)" role="alert">
+    @ChildContent
+    @if (Enabled)
+    {
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" @onclick="Close"></button>
+    }
+</div>
+@code {
+    [Parameter]
+    public bool Enabled { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public EventCallback OnCloseCallback { get; set; }
+
+    public async Task Close()
+    {
+        if (OnCloseCallback.HasDelegate)
+        {
+            await OnCloseCallback.InvokeAsync();    
+        }
+    }
+}

@@ -1,0 +1,74 @@
+﻿@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
+@inject IConnectionManager _connectionManager;
+@inject ILocalStorageManager _localStorageManager;
+<FormModal @ref="_formModalRef" T="AddConnectionForm" Model="_addConnectionForm" SecondaryButtonText="Connect" SecondaryButtonAction="AddConnection">
+    <ModalButtonLabel>Add New Connection</ModalButtonLabel>
+    <Title>Add Connection</Title>
+    <ModalBody>
+        <ValidationSummary/>
+        @if(_spinnerActive)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <div class="d-flex flex-row justify-content-center" style="padding:15px;">
+                <div class="flex-column" style="padding:15px;">
+                    <label for="Name">Name</label>
+                    <InputText @bind-Value="_addConnectionForm.Name" class="form-control" id="Name" placeholder="Unique Name 123"></InputText>
+                </div>
+                <div class="flex-column" style="padding:15px;">
+                    <label for="ConnectionString">Connection String</label>
+                    <InputText @bind-Value="_addConnectionForm.ConnectionString" class="form-control" id="ConnectionString" placeholder="Endpoint==..."></InputText>
+                </div>
+            </div>
+        }
+
+        <Snackbar Message="@_errorText" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red" OnDeath="() => {_hasError = false;}"></Snackbar>
+    </ModalBody>
+</FormModal>
+
+@code {
+    [Parameter] 
+    public EventCallback OnAddConnectionCallback { get; set; }
+
+    private AddConnectionForm _addConnectionForm = new AddConnectionForm();
+
+    private FormModal<AddConnectionForm> _formModalRef = null!;
+    private string? _errorText;
+    private bool _hasError = false;
+    private bool _spinnerActive = false;
+
+    private bool _saveConnectionsEnabled = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _saveConnectionsEnabled = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).SaveConnections;
+        }
+    }
+
+    private async Task AddConnection()
+    {
+        _spinnerActive = true;
+        if (_connectionManager.AddConnection(_addConnectionForm, out _errorText))
+        {
+            if (_saveConnectionsEnabled)
+            {
+                await _localStorageManager.AddConnectionToLocalStorage(_addConnectionForm);
+            }
+            _spinnerActive = false;
+            await _formModalRef.Close();
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_addConnectionForm);
+            _hasError = Validator.TryValidateObject(_addConnectionForm, context, null, true);
+        }
+        await OnAddConnectionCallback.InvokeAsync();
+    }
+
+}

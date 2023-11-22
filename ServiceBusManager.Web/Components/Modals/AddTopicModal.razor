@@ -1,0 +1,56 @@
+﻿@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+<FormModal @ref="_formModalRef" T="CreateTopicForm" Model="@_createTopicForm" SecondaryButtonText="Add Topic" SecondaryButtonAction="AddTopic" SecondaryButtonDisabled="_spinnerActive">
+    <ModalButtonLabel>Add Topic</ModalButtonLabel>
+    <Title>Add Topic</Title>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <ValidationSummary />
+            <div class="d-flex flex-row justify-content-center" style="padding:15px;">
+                <div class="flex-column" style="padding:15px;">
+                    <label for="Name">Name</label>
+                    <InputText @bind-Value="_createTopicForm.Name" class="form-control" id="Name"></InputText>
+                </div>
+                <div class="flex-column" style="padding:15px;">
+                    <label for="TimeToLive">Default Message Time to Live</label>
+                    <InputText @bind-Value="_createTopicForm.DefaultTimeToLiveString" class="form-control" id="TimeToLive" placeholder="00:00:00"></InputText>
+                </div>
+            </div>
+        }
+        <Snackbar Message="Error Creating Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
+    </ModalBody>
+</FormModal>
+
+@code {
+    [Parameter]
+    public EventCallback TopicAdded { get; set; }
+    private CreateTopicForm _createTopicForm = new CreateTopicForm();
+    private FormModal<CreateTopicForm> _formModalRef = null!;
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+    private async Task AddTopic()
+    {
+        _spinnerActive = true;
+        if (await _serviceBusClientAdminManager.AddNewTopic(_createTopicForm))
+        {
+            await _formModalRef.Close();
+            _spinnerActive = false;
+            if (TopicAdded.HasDelegate)
+            {
+                await TopicAdded.InvokeAsync();    
+            }
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_createTopicForm);
+            _hasError = Validator.TryValidateObject(_createTopicForm, context, null, true);
+        }
+    }
+}

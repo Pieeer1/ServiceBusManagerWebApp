@@ -1,0 +1,59 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.Drawing;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+
+<FormModal @ref="_formModalRef" T="RemoveSubscriptionForm" Model="_removeSubscriptionForm" SecondaryButtonText="Remove Subscription" SecondaryButtonDisabled="_spinnerActive" SecondaryButtonAction="RemoveSubscription" ButtonClassOverride="@("btn-scary")">
+    <Title>Remove Subscription</Title>
+    <ModalButtonLabel>Remove Subscription</ModalButtonLabel>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner />
+        }
+        else
+        {
+            <ValidationSummary />
+            <label class="bs-warning" for="copyCheck">Verify the Name of theSubscription you are Removing</label>
+            <InputText @bind-Value="_removeSubscriptionForm.SubscriptionName.Item2" class="form-control" id="copyCheck"></InputText>
+            <Snackbar Message="Error Removing Subscription" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red" OnDeath="() => {_hasError = false;}"></Snackbar>
+        }
+    </ModalBody>
+</FormModal>
+
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public string SubscriptionName { get; set; } = null!;
+    [Parameter]
+    public EventCallback SubscriptionRemoved { get; set; }
+    private RemoveSubscriptionForm _removeSubscriptionForm = new RemoveSubscriptionForm();
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+
+    private FormModal<RemoveSubscriptionForm> _formModalRef = null!;
+
+    private async Task RemoveSubscription()
+    {
+        _spinnerActive = true;
+        _removeSubscriptionForm.TopicName = ActiveFullTopic.TopicProperties.Name;
+        _removeSubscriptionForm.SubscriptionName.Item1 = SubscriptionName;
+
+        if (await _serviceBusClientAdminManager.RemoveSubscription(_removeSubscriptionForm))
+        {
+            _spinnerActive = false;
+            await _formModalRef.Close();
+            if (SubscriptionRemoved.HasDelegate)
+            {
+                await SubscriptionRemoved.InvokeAsync();
+            }
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_removeSubscriptionForm);
+            _hasError = Validator.TryValidateObject(_removeSubscriptionForm, context, null, true);
+        }
+
+    }
+}

@@ -1,0 +1,42 @@
+﻿<label for="dlqToggle">@Label</label>
+<div class="form-switch">
+    @if (Default)
+    {
+        <input style="height:25px;width:50px;" id="dlqToggle" @onclick="Toggle" class="form-check-input" type="checkbox" checked/>
+    }
+    else
+    {
+        <input style="height:25px;width:50px;" id="dlqToggle" @onclick="Toggle" class="form-check-input" type="checkbox" />
+    }
+</div>
+@code {
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public bool Default { get; set; }
+    [Parameter]
+    public EventCallback<bool> ClickCallback { get; set; }
+
+    private bool _boundValue = false;
+
+    private bool _firstTrigger = false;
+
+    protected override void OnParametersSet()
+    {
+        if (!_firstTrigger)
+        {
+            _boundValue = Default;
+            _firstTrigger = true;
+        }
+    }
+
+    private async Task Toggle()
+    {
+        _boundValue = !_boundValue;
+        if (ClickCallback.HasDelegate)
+        {
+            await ClickCallback.InvokeAsync(_boundValue);
+        }
+    }
+
+}

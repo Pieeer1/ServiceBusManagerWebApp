@@ -1,0 +1,56 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.Drawing;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+
+<FormModal @ref="_formModalRef" T="RemoveTopicForm" Model="_removeTopicForm" SecondaryButtonText="Remove Topic" SecondaryButtonDisabled="_spinnerActive" SecondaryButtonAction="RemoveTopic" ButtonClassOverride="@("btn-scary")"> 
+    <Title>Remove Topic</Title>
+    <ModalButtonLabel>Remove Topic</ModalButtonLabel>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <ValidationSummary/>
+            <label class="bs-warning" for="copyCheck">Verify the Name of theTopic you are Removing</label>
+            <InputText @bind-Value="_removeTopicForm.TopicName.Item2" class="form-control" id="copyCheck"></InputText>
+            <Snackbar Message="Error Removing Topic" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red" OnDeath="() => {_hasError = false;}"></Snackbar>
+        }
+    </ModalBody>
+</FormModal>
+
+
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public EventCallback TopicRemoved { get; set; }
+    private RemoveTopicForm _removeTopicForm = new RemoveTopicForm();
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+
+    private FormModal<RemoveTopicForm> _formModalRef = null!;
+
+    private async Task RemoveTopic()
+    {
+        _spinnerActive = true;
+        _removeTopicForm.TopicName.Item1 = ActiveFullTopic.TopicProperties.Name;
+        if (await _serviceBusClientAdminManager.RemoveTopic(_removeTopicForm))
+        {
+            _spinnerActive = false;
+            await _formModalRef.Close();
+            if (TopicRemoved.HasDelegate)
+            {
+                await TopicRemoved.InvokeAsync();    
+            }
+        }
+        else
+        {
+            _spinnerActive = false;
+            var context = new ValidationContext(_removeTopicForm);
+            _hasError = Validator.TryValidateObject(_removeTopicForm, context, null, true);
+        }
+
+    }
+}

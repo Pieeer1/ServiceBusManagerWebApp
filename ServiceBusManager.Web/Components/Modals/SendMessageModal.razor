@@ -1,0 +1,106 @@
+﻿@using Azure.Messaging.ServiceBus.Administration;
+@using System.Drawing;
+@using System.ComponentModel.DataAnnotations;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+@inject ILocalStorageManager _localStorageManager;
+
+<FormModal T="SendMessageForm" Model="_sendMessageForm" @ref="_sendMessageModal" SecondaryButtonText="Send Message" SecondaryButtonAction="SendMessage" SecondaryButtonDisabled="_spinnerActive" OnModalClosed="ModalClosed">
+    <ModalButtonLabel>Send Message</ModalButtonLabel>
+    <Title>Send Message - @ActiveFullTopic?.TopicProperties.Name</Title>
+    <ModalBody>
+        @if (_spinnerActive)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <ValidationSummary />
+            <InputTextArea class="fuck-resize fill-parent" rows="25" @bind-Value="_sendMessageForm.MessageText"></InputTextArea>
+            <EndlessDictionary Title="Message Properties" OnEndlessDictionaryChange="(s) => {_sendMessageForm.MessageProperties = s;}" DefaultValue="_defaultDictionarySet" />
+            <Snackbar Message="Error Sending Message" Active="_hasError" Lifetime="5" TextColor="Color.White" BackgroundColor="Color.Red"></Snackbar>
+        }
+    </ModalBody>
+</FormModal>
+@code {
+    [Parameter]
+    public FullTopicData ActiveFullTopic { get; set; } = null!;
+    [Parameter]
+    public EventCallback OnModalClosed { get; set; }
+    [Parameter]
+    public SendMessageOverrideDTO? OpenOverride { get; set; }
+
+    private SendMessageForm _sendMessageForm { get; set; } = new SendMessageForm();
+
+    private FormModal<SendMessageForm> _sendMessageModal = null!;
+    private bool _spinnerActive = false;
+    private bool _hasError = false;
+
+    private bool _closeModalAfterSending = false;
+
+    private Dictionary<string, string>? _defaultDictionarySet { get; set; }
+
+    private async Task SendMessage()
+    {
+        await runDelayed();
+
+        async Task runDelayed()
+        {
+            if (ActiveFullTopic is not null)
+            {
+                _spinnerActive = true;
+                if (await _serviceBusClientAdminManager.SendServiceBusMessage(ActiveFullTopic.TopicProperties.Name, _sendMessageForm))
+                {
+                    _spinnerActive = false;
+                    if (_closeModalAfterSending)
+                    {
+                        await _sendMessageModal.Close();
+                    }
+                }
+                else
+                {
+                    _spinnerActive = false;
+                    var context = new ValidationContext(_sendMessageForm);
+                    _hasError = Validator.TryValidateObject(_sendMessageForm, context, null, true);
+                }
+            }
+        }
+    }
+    private async Task ModalClosed()
+    {
+        await OnModalClosed.InvokeAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OpenOverride is not null)
+        {
+            await Open(OpenOverride);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _closeModalAfterSending = (await _localStorageManager.GetLocalSettings() ?? new LocalSettings()).AutoCloseOnMessageSend;
+        }
+    }
+
+
+    public async Task Open(SendMessageOverrideDTO? overrideDto = null)
+    {
+        if (overrideDto is not null)
+        {
+            _sendMessageForm = new SendMessageForm()
+                {
+                    MessageText = overrideDto.Message,
+                    MessageProperties = overrideDto.ApplicationProperties //TODO MAKE THE DICTIONARY ACTUALLY MAP TOO
+                };
+            _defaultDictionarySet = overrideDto.ApplicationProperties;
+        }
+
+        await _sendMessageModal.Open();
+        await Task.Delay(1);// need to delay for 1 ms so the compiler does not optimize to set _sendMessageOpenOverride to null immediately
+        _defaultDictionarySet = null;
+    }
+}
