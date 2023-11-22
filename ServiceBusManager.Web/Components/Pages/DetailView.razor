@@ -1,0 +1,184 @@
+﻿@page "/detailView"
+@using Azure.Messaging.ServiceBus.Administration;
+@inject IConnectionManager _connectionManager;
+@inject IServiceBusClientAdminManager _serviceBusClientAdminManager;
+
+
+<div class="container text-center">
+    <h1>Details</h1>
+
+    @if (_activeServiceBusConnections.Any())
+    {
+        <h3>Active Connection:</h3>
+        <FormSelect TItem="ServiceBusConnectionViewModel" Items="_activeServiceBusConnections" Selector="(x => x.Name)" ValueChanged="(s) => SetActiveConnection(s.Name)"></FormSelect>
+        @if (_activeTopics is null)
+        {
+            <div><Spinner></Spinner></div>
+        }
+        else
+        {
+            <AddTopicModal TopicAdded="GetTopicsFromActiveConnection"/>
+            <hr />
+            <div style="padding:15px;">
+                <h2>Topics</h2>
+            </div>
+            <hr/>
+            <Search @ref="_topicSearchReference" T="FullTopicData" OnSearchChanged="SearchChanged" FilterStringToSearch=" x => x.TopicProperties.Name"></Search>
+            <Accordion T="FullTopicData" Items="_activeTopics.Where(_filterExpression).ToList()" HeaderTextSelector="x => x.TopicProperties.Name" OnSelectionCallbackAsync="SelectTopic" AdditionalRightIconClick="RefreshSubscriptions">
+                <AdditionalRightIcon>
+                    <span class="bi bi-arrow-clockwise"></span>
+                </AdditionalRightIcon>
+                <ChildContent>
+                    @if (_activeFullTopic?.SubscriptionRuntimeProperties is null || _refreshing)
+                    {
+                        <Spinner></Spinner>
+                    }
+                    else
+                    {
+                        <SendMessageModal ActiveFullTopic="_activeFullTopic" OnModalClosed="RefreshSubscriptions" OpenOverride="@_sendMessageOpenOverride" />
+                        <AddSubscriptionModal ActiveFullTopic="_activeFullTopic" OnSubscriptionAdded="RefreshSubscriptions"></AddSubscriptionModal>
+                        <RemoveTopicModal ActiveFullTopic="_activeFullTopic" TopicRemoved="GetTopicsFromActiveConnection" />
+
+                        <hr />
+
+                        <div>
+                            <h2>Subscriptions</h2>
+                        </div>
+
+                        <hr />
+
+                        <Accordion 
+                            T="SubscriptionRuntimeProperties" 
+                            Items="_activeFullTopic.SubscriptionRuntimeProperties.ToList()" 
+                            HeaderTextSelector="@(x => $"{x.SubscriptionName} - ({x.ActiveMessageCount}, {x.DeadLetterMessageCount})")" 
+                            OnSelectionCallbackAsync="SelectSubscription">
+                            <ReceiveMessagesModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SendIdenticalMessageClicked="SendIdenticalMessagePressed"></ReceiveMessagesModal>
+                            <RemoveSubscriptionModal ActiveFullTopic="_activeFullTopic" SubscriptionName="@_activeSubscription?.SubscriptionName" SubscriptionRemoved="RefreshSubscriptions"></RemoveSubscriptionModal>
+                        </Accordion>
+                    }
+                </ChildContent>
+            </Accordion>
+        }
+    }
+    else
+    {
+        <div>No Active Connections Found</div>
+        <NavLink class="nav-link" href="manageConnections">
+            <span class="oi oi-list-rich" aria-hidden="true"></span> Add Connections
+        </NavLink>
+    }
+</div>
+
+@code {
+    private List<ServiceBusConnectionViewModel> _activeServiceBusConnections = null!;
+    private Func<FullTopicData, bool> _filterExpression = x => true;
+    private List<FullTopicData>? _activeTopics;
+    private FullTopicData? _activeFullTopic;
+    private SubscriptionRuntimeProperties? _activeSubscription;
+
+    private Search<FullTopicData>? _topicSearchReference;
+
+    private SendMessageOverrideDTO? _sendMessageOpenOverride;
+
+    private bool _refreshing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _activeServiceBusConnections = _connectionManager.GetServiceBusConnections().ToList();
+
+        if (_connectionManager.DistinctRefreshers.Add(typeof(DetailView)))
+        { 
+            _connectionManager.OnRefresh += async (o, e) => await Refresh();
+        }
+
+        if (_activeServiceBusConnections.Any())
+        {
+            await SetActiveConnection(_activeServiceBusConnections.First().Name);
+        }
+    }
+
+    private async Task Refresh()
+    {
+        _activeServiceBusConnections = _connectionManager.GetServiceBusConnections().ToList();
+        await InvokeAsync(() => StateHasChanged());
+        if (_activeServiceBusConnections.Any())
+        {
+            await SetActiveConnection(_activeServiceBusConnections.First().Name);
+        }
+    }
+
+    private async Task SetActiveConnection(string name)
+    {
+        _activeTopics = null; // no matter what reset value of _activeTopics, triggers the @onChange in the input form
+        _serviceBusClientAdminManager.SetActiveConnection(name);
+        await GetTopicsFromActiveConnection();
+        _topicSearchReference?.Clear();
+        if (_activeTopics?.Any() ?? false)
+        {
+            await SelectTopic(_activeTopics.First());
+        }
+    }
+    private async Task GetTopicsFromActiveConnection()
+    {
+        if(_activeTopics is not null){ _activeTopics = null; } // reset to reload page
+        _activeTopics = (await _serviceBusClientAdminManager.GetTopics()).Select(x => new FullTopicData(x.Key, x.Value)).ToList();
+    }
+    private async Task SelectTopic(FullTopicData topic)
+    {
+        _activeFullTopic = topic;
+        _activeTopics?.Where(x => x != _activeFullTopic).ToList().ForEach(e => 
+        {
+            e.SubscriptionProperties = null;
+            e.SubscriptionRuntimeProperties = null;
+        }); // wipe data to trigger GC on expensive massive memory eating subs and topics
+        Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties> resp = (await _serviceBusClientAdminManager.GetSubscriptions(topic.TopicProperties.Name));
+        topic.SubscriptionProperties = resp.Select(x => x.Key);
+        topic.SubscriptionRuntimeProperties = resp.Select(x => x.Value);
+        await InvokeAsync(() => StateHasChanged());
+        if (topic.SubscriptionProperties.Any())
+        { 
+            await SelectSubscription(topic.SubscriptionRuntimeProperties.First());
+        }
+    }
+    private async Task SelectSubscription(SubscriptionRuntimeProperties subscription)
+    {
+        _activeSubscription = subscription;
+        await InvokeAsync(() => StateHasChanged());
+    }
+    private void SearchChanged(Func<FullTopicData, bool> args)
+    {
+        _filterExpression = args;
+    }
+    private async Task RefreshSubscriptions()
+    {
+
+        if (_activeFullTopic is not null)
+        {
+            _refreshing = true;
+            await Refresh();
+            _refreshing = false;
+        }
+
+
+        async Task Refresh()
+        {
+            Dictionary<SubscriptionProperties, SubscriptionRuntimeProperties> resp = (await _serviceBusClientAdminManager.GetSubscriptions(_activeFullTopic.TopicProperties.Name));
+            _activeFullTopic.SubscriptionProperties = resp.Select(x => x.Key);
+            _activeFullTopic.SubscriptionRuntimeProperties = resp.Select(x => x.Value);
+            await InvokeAsync(() => StateHasChanged());
+
+        }
+    }
+
+    private async Task SendIdenticalMessagePressed((ReceiveMessagesModal, SendMessageOverrideDTO) inputTuple)
+    {
+        /*
+         * This entire Function is a hack since the @ref was not updating even with state has changed :/
+         * OnParametersSetAsync in SendMessageModal is the key here, along with passing the reference of the ReceiveMessagesModal
+         */
+        await inputTuple.Item1.Close();
+        _sendMessageOpenOverride = inputTuple.Item2;
+        await Task.Delay(1); // need to delay for 1 ms so the compiler does not optimize to set _sendMessageOpenOverride to null immediately
+        _sendMessageOpenOverride = null;
+    }
+}

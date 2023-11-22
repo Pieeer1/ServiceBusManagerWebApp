@@ -1,0 +1,63 @@
+﻿@using ServiceBusManager.Web.Models.Hotkeys
+@inject IConfiguration _configuration;
+@inject IHotkeyManager _hotkeyManager;
+@inject NavigationManager _navigationManager;
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Service Bus Manager<div class="environment-label">@GetEnvironmentString()</div></a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door" aria-hidden="true" style="padding-right:15px;font-size:25px;"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="manageConnections">
+                <span class="bi bi-cloud-plus" aria-hidden="true" style="padding-right:15px;font-size:25px;"></span> Manage Connections
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="detailView">
+                <span class="bi bi-envelope-open" aria-hidden="true" style="padding-right:15px;font-size:25px;"></span> Detail View
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="settings">
+                <span class="bi bi-gear" aria-hidden="true" style="padding-right:15px;font-size:25px;"></span> Settings
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo(""), "Naviate to Home", ComponentDetached, Key.Alt, Key.Num1);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("manageConnections"), "Navigate to Manage Connections", ComponentDetached, Key.Alt, Key.Num2);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("detailView"), "Navigate to Detail View", ComponentDetached, Key.Alt, Key.Num3);
+            _hotkeyManager.RegisterHotkey(() => _navigationManager.NavigateTo("settings"), "Navigate to Settings", ComponentDetached, Key.Alt, Key.Num4);
+        }
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+    private string? GetEnvironmentString()
+    {
+        return _configuration.GetSection("EnvironmentSettings:Environment").Value?.ToLower() == "production" ? string.Empty : _configuration.GetSection("EnvironmentSettings:Environment").Value;
+    }
+}

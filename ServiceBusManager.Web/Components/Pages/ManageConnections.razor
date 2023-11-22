@@ -1,0 +1,65 @@
+﻿@page "/manageConnections"
+@using System.Drawing;
+@inject ILocalStorageManager _localStorageManager;
+@inject IConnectionManager _connectionManager;
+<div class="container text-center">
+
+    <h1>Manage Connections</h1>
+    @if (_activeConnections is null)
+    {
+         <Spinner></Spinner>
+    }
+    else
+    {
+        @if (_activeConnections.Any())
+        {
+            <h3>Active Connections:</h3>
+            @for (int i = 0; i < _activeConnections.Count; i++)
+            {
+                int lambdaIndex = i; // need this to instantiate the static value for lambda expressions
+                <div>
+                    <div>
+                        <Card 
+                            CardTitle="@_activeConnections[i].Name" 
+                            CardSubtext="@_activeConnections[i].FullyQualifiedNamespace" 
+                            CardItems="@(new List<string>(){_activeConnections[i].TransportType.ToString(), _activeConnections[i].Identifier})" 
+                            CardLinks="@(new Dictionary<string,string>(){{"Details", "detailView"}})">
+                                <div style="float:right"> @*TODO - DEPRECATE THE SHIT OUT OF THIS INLINE STYLING*@
+                                <TrashCan OnClickCallback="() => RemoveConnection(_activeConnections[lambdaIndex].Name)"></TrashCan>
+                                </div>
+                        </Card>
+                    </div>
+                </div>
+            }
+            <hr/>
+        }
+        <AddConnectionModal OnAddConnectionCallback="ReprocessConnections"/>
+    }
+</div>
+@code {
+    private List<ServiceBusConnectionViewModel>? _activeConnections;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReprocessConnections();
+
+        if (_connectionManager.DistinctRefreshers.Add(typeof(ManageConnections)))
+        {
+            _connectionManager.OnRefresh += async (o, e) => await ReprocessConnections();
+        }
+    }
+
+    private async Task RemoveConnection(string name)
+    {
+        _connectionManager.RemoveConnection(name);
+        await _localStorageManager.RemoveConnectionFromLocalStorage(name);
+        await ReprocessConnections();
+    }
+
+    private async Task ReprocessConnections()
+    {
+        _activeConnections = _connectionManager.GetServiceBusConnections().ToList();
+        await InvokeAsync(() => StateHasChanged());
+    }
+}

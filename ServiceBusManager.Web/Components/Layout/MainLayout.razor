@@ -1,9 +1,95 @@
-﻿@inherits LayoutComponentBase
+﻿@using ServiceBusManager.Web.Models.JS
+@using ServiceBusManager.Web.Models.Hotkeys
+@inherits LayoutComponentBase
+@inject ILocalStorageManager _localStorageManager;
+@inject IConnectionManager _connectionManager;
+@inject IHotkeyManager _hotkeyManager;
+@inject IScreenInformationService _screenInformationService;
 
-@Body
+<div @ref="_baseRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp" class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+
+        </div>
+
+        <article class="content">
+            @Body
+            @if (_windowDimensions.Width > 640)
+            {
+                <HotkeyAlert AlertEnabled="_alertEnabled" AlertClosedCallback="() => {_alertEnabled = false;}"></HotkeyAlert>
+            }
+        </article>
+    </main>
+</div>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+
+@code{
+
+    private ElementReference _baseRef;
+    private bool _alertEnabled;
+    private HashSet<IPressable> _currentlyPressedKeys = new HashSet<IPressable>();
+    private WindowDimensions _windowDimensions;
+    /// <summary>
+    /// For Hotkeys, Subscribes to the keyboard event and invokes delegate on service
+    /// </summary>
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        _currentlyPressedKeys.Add(new Key(e.Key));
+        _currentlyPressedKeys.Add(new Code(e.Code));
+
+        _hotkeyManager.TriggerHotkey(_currentlyPressedKeys.ToArray());
+        Task.Run(async () => await InvokeAsync(() => StateHasChanged()));
+    }
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        _currentlyPressedKeys.Clear();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _hotkeyManager.RegisterHotkey(ToggleQuestion, "Show Hotkeys", null, Key.Shift, Key.Question); //TODO - IMPLEMENT HELP SCREEN. POTENTIALLY THROUGH A SERVICE
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _screenInformationService.Init();
+            _screenInformationService.WindowResized += async (o, e) => await RecalculateWindowSize();
+            foreach (var connection in await _localStorageManager.GetConnections())
+            {
+                if (_connectionManager.GetServiceBusConnections().Any(x => x.Name == connection.Key)) { break; }
+                _connectionManager.AddConnection(new AddConnectionForm() { Name = connection.Key, ConnectionString = connection.Value }, out string? localStorageError);
+                if (localStorageError is not null)
+                {
+                    //TODO - and potentially notify user
+                    await _localStorageManager.RemoveConnectionFromLocalStorage(connection.Key);
+                }
+            }
+            _connectionManager.RefreshRequested();
+            await _baseRef.FocusAsync();
+            await RecalculateWindowSize();
+        }
+    }
+    public void ToggleQuestion()
+    {
+        _alertEnabled = !_alertEnabled;
+    }
+    private async Task RecalculateWindowSize()
+    {
+        _windowDimensions = await _screenInformationService.GetScreenSize();
+        await InvokeAsync(() => StateHasChanged());
+    }
+}
